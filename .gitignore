@@ -1,0 +1,16 @@
+*
+!.gitignore
+!README.md
+!app.py
+!requirements.txt
+!.streamlit/
+!.streamlit/config.toml
+!data/
+data/*
+!data/scouting.sqlite3
+!data/role_criteria.json
+!data/england_regions.topojson
+!data/player_photos/
+!data/player_photos/**
+!data/club_logos/
+!data/club_logos/**

@@ -1,0 +1,1055 @@
+[
+  {
+    "role_name": "Centre Forward",
+    "position": "ST",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Finishing",
+      "Heading",
+      "Off The Ball",
+      "First Touch",
+      "Technique",
+      "Acceleration",
+      "Strength",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Channel Forward",
+    "position": "ST",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Dribbling",
+      "Finishing",
+      "Off The Ball",
+      "First Touch",
+      "Technique",
+      "Work Rate",
+      "Acceleration",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Deep-Lying Forward",
+    "position": "ST",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Finishing",
+      "Off The Ball",
+      "First Touch",
+      "Technique",
+      "Strength",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "False Nine",
+    "position": "ST",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Dribbling",
+      "Off The Ball",
+      "Passing",
+      "Vision",
+      "Decisions",
+      "First Touch",
+      "Technique",
+      "Teamwork"
+    ]
+  },
+  {
+    "role_name": "Poacher",
+    "position": "ST",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Finishing",
+      "Heading",
+      "Off The Ball",
+      "Anticipation",
+      "Acceleration",
+      "Composure",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Target Forward",
+    "position": "ST",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Finishing",
+      "Heading",
+      "Off The Ball",
+      "Strength",
+      "Jumping Reach",
+      "Balance",
+      "Bravery",
+      "Aggression"
+    ]
+  },
+  {
+    "role_name": "Central Outlet Centre Forward",
+    "position": "ST",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Balance",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Centre Forward",
+    "position": "ST",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Anticipation",
+      "Decisions",
+      "Work Rate"
+    ]
+  },
+  {
+    "role_name": "Splitting Outlet Centre Forward",
+    "position": "ST",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Pace",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Tracking Centre Forward",
+    "position": "ST",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Work Rate",
+      "Stamina",
+      "Aggression"
+    ]
+  },
+  {
+    "role_name": "Inside Forward",
+    "position": "AM(L/R)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Dribbling",
+      "Off The Ball",
+      "Anticipation",
+      "First Touch",
+      "Technique",
+      "Acceleration",
+      "Agility",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Inside Winger",
+    "position": [
+      "AM(L/R)",
+      "M(L/R)"
+    ],
+    "phase": "in_possession",
+    "key_attributes": [
+      "Dribbling",
+      "First Touch",
+      "Technique",
+      "Teamwork",
+      "Acceleration",
+      "Agility",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Playmaking Winger",
+    "position": [
+      "AM(L/R)",
+      "M(L/R)"
+    ],
+    "phase": "in_possession",
+    "key_attributes": [
+      "Crossing",
+      "Dribbling",
+      "Off The Ball",
+      "Passing",
+      "Vision",
+      "Decisions",
+      "First Touch",
+      "Technique"
+    ]
+  },
+  {
+    "role_name": "Wide Forward",
+    "position": "AM(L/R)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Dribbling",
+      "Off The Ball",
+      "Anticipation",
+      "First Touch",
+      "Technique",
+      "Acceleration",
+      "Pace",
+      "Agility"
+    ]
+  },
+  {
+    "role_name": "Winger",
+    "position": [
+      "AM(L/R)",
+      "M(L/R)"
+    ],
+    "phase": "in_possession",
+    "key_attributes": [
+      "Crossing",
+      "Dribbling",
+      "Technique",
+      "Teamwork",
+      "Acceleration",
+      "Pace",
+      "Agility"
+    ]
+  },
+  {
+    "role_name": "Inside Outlet Winger",
+    "position": "AM(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Balance",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Tracking Winger",
+    "position": "AM(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Work Rate",
+      "Acceleration",
+      "Stamina",
+      "Aggression"
+    ]
+  },
+  {
+    "role_name": "Wide Outlet Winger",
+    "position": "AM(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Pace",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Winger",
+    "position": "AM(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Work Rate",
+      "Acceleration"
+    ]
+  },
+  {
+    "role_name": "Advanced Playmaker",
+    "position": [
+      "AM(C)",
+      "M(C)"
+    ],
+    "phase": "in_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Passing",
+      "Vision",
+      "Decisions",
+      "First Touch",
+      "Technique",
+      "Teamwork",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Attacking Midfielder",
+    "position": [
+      "AM(C)",
+      "M(C)"
+    ],
+    "phase": "in_possession",
+    "key_attributes": [
+      "Long Shots",
+      "Off The Ball",
+      "Passing",
+      "First Touch",
+      "Technique",
+      "Flair",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Channel Midfielder",
+    "position": [
+      "AM(C)",
+      "M(C)"
+    ],
+    "phase": "in_possession",
+    "key_attributes": [
+      "Crossing",
+      "Off The Ball",
+      "Passing",
+      "First Touch",
+      "Technique",
+      "Work Rate",
+      "Acceleration",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Free Role",
+    "position": "AM(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Dribbling",
+      "Long Shots",
+      "Off The Ball",
+      "Passing",
+      "Vision",
+      "First Touch",
+      "Technique",
+      "Flair"
+    ]
+  },
+  {
+    "role_name": "Second Striker",
+    "position": "AM(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Finishing",
+      "Off The Ball",
+      "Anticipation",
+      "First Touch",
+      "Acceleration",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Attacking Midfielder",
+    "position": "AM(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Anticipation",
+      "Decisions",
+      "Work Rate"
+    ]
+  },
+  {
+    "role_name": "Central Outlet Attacking Midfielder",
+    "position": "AM(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Balance",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Splitting Outlet Attacking Midfielder",
+    "position": "AM(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Pace",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Tracking Attacking Midfielder",
+    "position": "AM(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Work Rate",
+      "Stamina",
+      "Aggression"
+    ]
+  },
+  {
+    "role_name": "Wide Midfielder",
+    "position": "M(L/R)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Crossing",
+      "Passing",
+      "Decisions",
+      "Technique",
+      "Teamwork",
+      "Work Rate",
+      "Stamina",
+      "Pace"
+    ]
+  },
+  {
+    "role_name": "Tracking Wide Midfielder",
+    "position": "M(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Work Rate",
+      "Acceleration",
+      "Stamina",
+      "Aggression"
+    ]
+  },
+  {
+    "role_name": "Wide Midfielder",
+    "position": "M(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Decisions",
+      "Teamwork",
+      "Work Rate",
+      "Acceleration"
+    ]
+  },
+  {
+    "role_name": "Wide Outlet Wide Midfielder",
+    "position": "M(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Pace",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Central Midfielder",
+    "position": "M(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Passing",
+      "Tackling",
+      "Decisions",
+      "First Touch",
+      "Teamwork"
+    ]
+  },
+  {
+    "role_name": "Midfield Playmaker",
+    "position": "M(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Passing",
+      "Vision",
+      "Decisions",
+      "First Touch",
+      "Technique",
+      "Teamwork",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Wide Central Midfielder",
+    "position": "M(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Passing",
+      "Tackling",
+      "Decisions",
+      "First Touch",
+      "Teamwork"
+    ]
+  },
+  {
+    "role_name": "Central Midfielder",
+    "position": "M(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Tackling",
+      "Decisions",
+      "Teamwork",
+      "Work Rate"
+    ]
+  },
+  {
+    "role_name": "Pressing Central Midfielder",
+    "position": "M(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Teamwork",
+      "Work Rate",
+      "Stamina",
+      "Aggression"
+    ]
+  },
+  {
+    "role_name": "Screening Central Midfielder",
+    "position": "M(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Decisions",
+      "Positioning",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Wide Covering Central Midfielder",
+    "position": "M(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Decisions",
+      "Teamwork",
+      "Work Rate",
+      "Stamina",
+      "Agility"
+    ]
+  },
+  {
+    "role_name": "Advanced Wing-Back",
+    "position": "WB(L/R)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Crossing",
+      "Dribbling",
+      "Off The Ball",
+      "Technique",
+      "Teamwork",
+      "Work Rate",
+      "Acceleration",
+      "Stamina"
+    ]
+  },
+  {
+    "role_name": "Inside Wing-Back",
+    "position": [
+      "D(L/R)",
+      "WB(L/R)"
+    ],
+    "phase": "in_possession",
+    "key_attributes": [
+      "Passing",
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Teamwork",
+      "Acceleration",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Playmaking Wing-Back",
+    "position": "WB(L/R)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Passing",
+      "Tackling",
+      "Vision",
+      "Decisions",
+      "First Touch",
+      "Technique",
+      "Teamwork",
+      "Acceleration"
+    ]
+  },
+  {
+    "role_name": "Wing Back",
+    "position": [
+      "D(L/R)",
+      "WB(L/R)"
+    ],
+    "phase": "in_possession",
+    "key_attributes": [
+      "Crossing",
+      "Marking",
+      "Tackling",
+      "Teamwork",
+      "Work Rate",
+      "Acceleration",
+      "Stamina",
+      "Pace"
+    ]
+  },
+  {
+    "role_name": "Holding Wing-Back",
+    "position": "WB(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Acceleration",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Pressing Wing-Back",
+    "position": "WB(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Teamwork",
+      "Work Rate",
+      "Acceleration",
+      "Stamina"
+    ]
+  },
+  {
+    "role_name": "Wing Back",
+    "position": "WB(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Teamwork",
+      "Acceleration",
+      "Stamina"
+    ]
+  },
+  {
+    "role_name": "Box-To-Box Midfielder",
+    "position": "DM",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Passing",
+      "Tackling",
+      "Teamwork",
+      "Work Rate",
+      "Stamina"
+    ]
+  },
+  {
+    "role_name": "Box-To-Box Playmaker",
+    "position": "DM",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Off The Ball",
+      "Passing",
+      "Vision",
+      "Decisions",
+      "First Touch",
+      "Technique",
+      "Teamwork",
+      "Work Rate"
+    ]
+  },
+  {
+    "role_name": "Deep-Lying Playmaker",
+    "position": "DM",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Passing",
+      "Vision",
+      "Decisions",
+      "First Touch",
+      "Technique",
+      "Teamwork",
+      "Composure"
+    ]
+  },
+  {
+    "role_name": "Defensive Midfielder",
+    "position": "DM",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Teamwork",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Half Back",
+    "position": "DM",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Teamwork",
+      "Strength",
+      "Jumping Reach"
+    ]
+  },
+  {
+    "role_name": "Defensive Midfielder",
+    "position": "DM",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Teamwork",
+      "Work Rate"
+    ]
+  },
+  {
+    "role_name": "Dropping Defensive Midfielder",
+    "position": "DM",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Teamwork",
+      "Work Rate",
+      "Strength"
+    ]
+  },
+  {
+    "role_name": "Screening Defensive Midfielder",
+    "position": "DM",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Wide Covering Defensive Midfielder",
+    "position": "DM",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Teamwork",
+      "Work Rate",
+      "Stamina"
+    ]
+  },
+  {
+    "role_name": "Full Back",
+    "position": "D(L/R)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Teamwork",
+      "Acceleration",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Inside Full-Back",
+    "position": "D(L/R)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Strength"
+    ]
+  },
+  {
+    "role_name": "Playmaking Wing-Back",
+    "position": "D(L/R)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Passing",
+      "Tackling",
+      "Vision",
+      "Decisions",
+      "First Touch",
+      "Technique",
+      "Teamwork",
+      "Acceleration"
+    ]
+  },
+  {
+    "role_name": "Full Back",
+    "position": "D(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Teamwork",
+      "Acceleration"
+    ]
+  },
+  {
+    "role_name": "Holding Full-Back",
+    "position": "D(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Acceleration",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Pressing Full-Back",
+    "position": "D(L/R)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Teamwork",
+      "Work Rate",
+      "Acceleration",
+      "Aggression"
+    ]
+  },
+  {
+    "role_name": "Advanced Centre-Back",
+    "position": "D(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Passing",
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Technique"
+    ]
+  },
+  {
+    "role_name": "Ball-Playing Centre-Back",
+    "position": "D(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Passing",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Strength",
+      "Jumping Reach"
+    ]
+  },
+  {
+    "role_name": "Centre-Back",
+    "position": "D(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Strength",
+      "Jumping Reach"
+    ]
+  },
+  {
+    "role_name": "No-Nonsense Centre-Back",
+    "position": "D(C)",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Strength",
+      "Jumping Reach"
+    ]
+  },
+  {
+    "role_name": "Centre-Back",
+    "position": "D(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Strength",
+      "Jumping Reach"
+    ]
+  },
+  {
+    "role_name": "Covering Centre-Back",
+    "position": "D(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Decisions",
+      "Positioning",
+      "Strength",
+      "Pace"
+    ]
+  },
+  {
+    "role_name": "Stopping Centre-Back",
+    "position": "D(C)",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Heading",
+      "Marking",
+      "Tackling",
+      "Anticipation",
+      "Positioning",
+      "Strength",
+      "Jumping Reach",
+      "Bravery"
+    ]
+  },
+  {
+    "role_name": "Ball-Playing Goalkeeper",
+    "position": "GK",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Handling",
+      "Aerial Reach",
+      "Command Of Area",
+      "Communication",
+      "Kicking",
+      "Positioning",
+      "Reflexes",
+      "Agility"
+    ]
+  },
+  {
+    "role_name": "Goalkeeper",
+    "position": "GK",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Handling",
+      "Aerial Reach",
+      "Command Of Area",
+      "Communication",
+      "Positioning",
+      "Reflexes",
+      "Agility",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "No-Nonsense Goalkeeper",
+    "position": "GK",
+    "phase": "in_possession",
+    "key_attributes": [
+      "Handling",
+      "Aerial Reach",
+      "Command Of Area",
+      "Communication",
+      "Positioning",
+      "Reflexes",
+      "Agility",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Goalkeeper",
+    "position": "GK",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Handling",
+      "Aerial Reach",
+      "Command Of Area",
+      "Communication",
+      "Positioning",
+      "Reflexes",
+      "Agility",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Line-Holding Keeper",
+    "position": "GK",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Handling",
+      "Aerial Reach",
+      "Command Of Area",
+      "Communication",
+      "Positioning",
+      "Reflexes",
+      "Agility",
+      "Concentration"
+    ]
+  },
+  {
+    "role_name": "Sweeper Keeper",
+    "position": "GK",
+    "phase": "out_of_possession",
+    "key_attributes": [
+      "Handling",
+      "Aerial Reach",
+      "Command Of Area",
+      "Communication",
+      "Anticipation",
+      "Decisions",
+      "One On Ones",
+      "Reflexes"
+    ]
+  }
+]
