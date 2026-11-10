@@ -1666,21 +1666,79 @@ def position_versatility_figure(canonical_id: str) -> go.Figure | None:
     return fig
 
 
+def role_phase_ranking_figure(fits: pd.DataFrame, phase: str, selected_role: str) -> go.Figure | None:
+    """Rank the actual calculated role outcomes within one tactical phase."""
+    rows = fits[fits.phase == phase].sort_values("score", ascending=True).copy()
+    if rows.empty:
+        return None
+    fig = go.Figure()
+    for _, row in rows.iterrows():
+        accent = BURGUNDY if row.role == selected_role else "#7C9D98"
+        fig.add_shape(type="line", x0=0, x1=float(row.score), y0=str(row.role), y1=str(row.role), line=dict(color="rgba(124,157,152,.34)", width=3))
+        fig.add_trace(go.Scatter(
+            x=[float(row.score)], y=[str(row.role)], mode="markers",
+            marker=dict(size=14 if row.role == selected_role else 10, color=accent, line=dict(color="white", width=1.5)),
+            customdata=[(int(row.known), int(row.required), float(row.coverage) * 100)],
+            hovertemplate=f"<b>{esc(row.role)}</b><br>Calculated role fit: %{{x:.0f}}<br>Evidence: %{{customdata[0]}} of %{{customdata[1]}} requirements<extra></extra>",
+            showlegend=False,
+        ))
+    fig.update_layout(height=max(240, len(rows) * 43 + 70), margin=dict(l=8,r=14,t=12,b=32), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(range=[0,100], title="Calculated role fit", gridcolor="#E8E1D7", zeroline=False),
+        yaxis=dict(tickfont=dict(size=11,color=NAVY), gridcolor="rgba(0,0,0,0)"))
+    return fig
+
+
+def role_requirement_evidence_figure(canonical_id: str, role_row: pd.Series) -> go.Figure | None:
+    """Show only the actual recorded requirements that drove one role outcome."""
+    percentiles = player_percentile_attributes(canonical_id)
+    required = [name.strip() for name in str(role_row.key_attributes).split(",") if name.strip()]
+    observed = [(name, percentiles[name], index < 4) for index, name in enumerate(required) if name in percentiles]
+    if len(observed) < 2:
+        return None
+    names = [item[0] for item in observed]
+    values = [item[1] for item in observed]
+    is_core = [item[2] for item in observed]
+    fig = go.Figure()
+    fig.add_vline(x=50, line=dict(color="rgba(104,119,131,.55)", dash="dot", width=1.2), annotation_text="Peer midpoint", annotation_position="top", annotation_font=dict(size=10,color=MUTED))
+    fig.add_trace(go.Scatter(
+        x=values, y=names, mode="markers",
+        marker=dict(size=12, color=[BURGUNDY if core else "#5F8D87" for core in is_core], line=dict(color="white", width=1.5)),
+        text=[f"<b>{esc(name)}</b><br>Player peer percentile: {value:.0f}<br>{'Core requirement' if core else 'Supporting requirement'}" for name, value, core in observed],
+        hovertemplate="%{text}<extra></extra>", showlegend=False,
+    ))
+    fig.update_layout(height=max(255, len(names) * 37 + 75), margin=dict(l=12,r=12,t=35,b=24), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(range=[0,100], title="Peer percentile", gridcolor="#E8E1D7", zeroline=False),
+        yaxis=dict(autorange="reversed", tickfont=dict(size=11,color=NAVY), gridcolor="rgba(0,0,0,0)"))
+    return fig
+
+
 def render_role_fit(canonical_id: str, profile_key: str | None = None, detailed: bool = False) -> None:
     fits = role_fit_estimates(canonical_id, profile_key)
     st.markdown("<div class='profile-section-head'>Role fit</div>", unsafe_allow_html=True)
     if fits.empty:
         st.markdown("<div class='profile-empty'>There is not enough positional evidence to calculate a role profile yet.</div>", unsafe_allow_html=True)
         return
-    matrix = role_fit_matrix_figure(canonical_id)
-    if matrix:
-        st.plotly_chart(matrix, width="stretch", config={"displayModeBar": False}, key=f"role_matrix_{'detail' if detailed else 'overview'}_{canonical_id}")
-    for phase, label in (("In Possession", "With the ball"), ("Out Of Possession", "Without the ball")):
-        row = fits[fits.phase == phase].sort_values("score", ascending=False).head(1)
-        if not row.empty:
-            best = row.iloc[0]
-            st.caption(f"{label}: {best.role} · based on {int(best.known)}/{int(best.required)} available requirements")
-    st.caption("Role fit uses peer percentiles within the player’s positional lane. Missing evidence is excluded, never treated as a low score.")
+    phase_labels = {"In Possession": "With the ball", "Out Of Possession": "Without the ball"}
+    available_phases = [phase for phase in phase_labels if not fits[fits.phase == phase].empty]
+    phase = st.radio("Tactical phase", available_phases, horizontal=True, format_func=lambda value: phase_labels[value], key=f"role_phase_{'detail' if detailed else 'overview'}_{canonical_id}")
+    phase_rows = fits[fits.phase == phase].sort_values("score", ascending=False).reset_index(drop=True)
+    role_names = phase_rows.role.tolist()
+    selected_role = st.selectbox("Role profile", role_names, key=f"role_choice_{'detail' if detailed else 'overview'}_{canonical_id}")
+    selected_row = phase_rows[phase_rows.role == selected_role].iloc[0]
+    ranking_col, evidence_col = st.columns([1, 1.05], gap="medium")
+    with ranking_col:
+        st.markdown("<div class='section-note'>Role outcomes for the selected phase</div>", unsafe_allow_html=True)
+        ranking = role_phase_ranking_figure(fits, phase, selected_role)
+        if ranking:
+            st.plotly_chart(ranking, width="stretch", config={"displayModeBar": False}, key=f"role_rank_{'detail' if detailed else 'overview'}_{canonical_id}")
+    with evidence_col:
+        st.markdown(f"<div class='section-note'>Why this role · {esc(selected_role)}</div>", unsafe_allow_html=True)
+        evidence = role_requirement_evidence_figure(canonical_id, selected_row)
+        if evidence:
+            st.plotly_chart(evidence, width="stretch", config={"displayModeBar": False}, key=f"role_evidence_{'detail' if detailed else 'overview'}_{canonical_id}")
+        else:
+            st.markdown("<div class='profile-empty'>There is not enough recorded role evidence for this drill-down.</div>", unsafe_allow_html=True)
+    st.caption("The selected role is calculated from peer percentiles for its recorded requirements. Bronze points are core requirements; green points are supporting requirements. Missing data is excluded, not scored as weak.")
 
 
 def attr_rows_html(frame: pd.DataFrame) -> str:
