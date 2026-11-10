@@ -1426,6 +1426,187 @@ def peer_distribution_figure(canonical_id: str) -> go.Figure | None:
     return fig
 
 
+def profile_fingerprint_figure(canonical_id: str) -> go.Figure | None:
+    """Show the player's positional shape against real peer profiles, not a generic radar."""
+    lane, scores, _ = position_metrics(canonical_id)
+    if len(scores) < 3:
+        return None
+    labels = list(scores)
+    peers = peer_capability_frame(lane).pivot(index="canonical_id", columns="metric", values="score").reindex(columns=labels)
+    peers = peers.dropna(thresh=max(3, len(labels) - 1))
+    if peers.empty:
+        return None
+    if len(peers) > 150:
+        peers = peers.sample(150, random_state=42)
+    x = list(range(len(labels)))
+    fig = go.Figure()
+    for _, row in peers.iterrows():
+        observed_x = [index for index, value in enumerate(row.tolist()) if pd.notna(value)]
+        observed_y = [row.iloc[index] for index in observed_x]
+        if len(observed_x) >= 3:
+            fig.add_trace(go.Scatter(x=observed_x, y=observed_y, mode="lines", line=dict(color="rgba(91,120,115,.10)", width=1), hoverinfo="skip", showlegend=False))
+    fig.add_trace(go.Scatter(x=x, y=[scores[label] for label in labels], mode="lines+markers", name="Selected player",
+        line=dict(color=BURGUNDY, width=3.6), marker=dict(size=10, color=GOLD, line=dict(color="white", width=2)),
+        text=[f"<b>{esc(label)}</b><br>Player peer percentile: {scores[label]:.0f}" for label in labels], hovertemplate="%{text}<extra></extra>"))
+    fig.add_hline(y=50, line=dict(color="rgba(104,119,131,.55)", dash="dot", width=1.3), annotation_text="Peer midpoint", annotation_position="bottom right", annotation_font=dict(size=10,color=MUTED))
+    fig.update_layout(height=480, margin=dict(l=12,r=12,t=20,b=64), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(tickmode="array", tickvals=x, ticktext=labels, tickangle=-24, showgrid=False, zeroline=False, tickfont=dict(size=11,color=NAVY)),
+        yaxis=dict(range=[0,100], showticklabels=False, gridcolor="#E8E1D7", zeroline=False), showlegend=False)
+    return fig
+
+
+def role_landscape_figure(canonical_id: str) -> go.Figure | None:
+    lane, metrics, _ = position_metrics(canonical_id)
+    fits = role_fit_estimates(canonical_id)
+    if fits.empty or not metrics:
+        return None
+    percentiles = player_percentile_attributes(canonical_id)
+    template = POSITION_DNA.get(lane, {})
+    roles = fits.sort_values("score", ascending=False).head(8).copy()
+    columns = list(metrics)
+    z: list[list[float | None]] = []
+    row_labels: list[str] = []
+    for _, role in roles.iterrows():
+        required = {name.strip() for name in str(role.key_attributes).split(",") if name.strip()}
+        row: list[float | None] = []
+        for metric_name in columns:
+            values = [percentiles[name] for name in template[metric_name] if name in required and name in percentiles]
+            row.append(sum(values) / len(values) if values else None)
+        z.append(row)
+        row_labels.append(f"{role.role} · {role.phase.replace(' ', ' ').lower()}")
+    fig = go.Figure(go.Heatmap(z=z, x=columns, y=row_labels, zmin=0, zmax=100,
+        colorscale=[[0, "#EEF0EC"], [.45, "#B6D1CA"], [.72, "#6F9993"], [1, BURGUNDY]],
+        showscale=False, hovertemplate="<b>%{y}</b><br>%{x}: %{z:.0f} peer percentile<extra></extra>", xgap=2, ygap=2))
+    fig.update_layout(height=300, margin=dict(l=8,r=8,t=12,b=74), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(tickangle=-24, tickfont=dict(size=10,color=NAVY)), yaxis=dict(autorange="reversed", tickfont=dict(size=10,color=NAVY)))
+    return fig
+
+
+POSITION_CONTEXT_AXES = {
+    "GK": (["Distribution", "Sweeping"], ["Shot stopping", "Area command", "Reliability"], "Distribution & sweeping", "Stopping & command"),
+    "ST": (["Link play", "Running power"], ["Box finishing", "Movement", "Aerial threat"], "Link & running", "Finishing & threat"),
+    "AM(L/R)": (["Chance creation", "Ball security"], ["1v1 threat", "Goal threat", "Wide running"], "Creation & retention", "Direct threat"),
+    "AM(C)": (["Creative progression", "Ball security"], ["Between-lines play", "Goal threat"], "Creation & security", "Between-lines & threat"),
+    "M(C)": (["Progression", "Ball security", "Press resistance"], ["Defensive coverage", "Running capacity"], "Possession influence", "Defensive & running"),
+    "DM": (["Build-up security", "Progression"], ["Screening", "Defensive coverage", "Duelling"], "Build-up influence", "Screening & duels"),
+    "D(L/R)": (["Wide progression", "Running capacity"], ["Wide defending", "Recovery defending", "Duelling"], "Wide progression", "Defensive coverage"),
+    "WB(L/R)": (["Wide progression", "Running capacity"], ["Wide defending", "Recovery defending", "Duelling"], "Wide progression", "Defensive coverage"),
+    "D(C)": (["Build-up security", "Recovery defending"], ["Box defending", "Aerial dominance", "Duelling resilience"], "Build-up & recovery", "Box & aerial defending"),
+}
+
+
+def peer_context_figure(canonical_id: str) -> go.Figure | None:
+    lane, scores, _ = position_metrics(canonical_id)
+    axis_map = POSITION_CONTEXT_AXES.get(lane)
+    if not axis_map:
+        return None
+    x_metrics, y_metrics, x_title, y_title = axis_map
+    peers = peer_capability_frame(lane).pivot(index="canonical_id", columns="metric", values="score")
+    needed = list(set(x_metrics + y_metrics))
+    peers = peers.reindex(columns=needed)
+    x = peers[x_metrics].mean(axis=1, skipna=True)
+    y = peers[y_metrics].mean(axis=1, skipna=True)
+    available = pd.DataFrame({"x": x, "y": y}).dropna()
+    if available.empty:
+        return None
+    if len(available) > 220:
+        available = available.sample(220, random_state=42)
+    player_x = sum(scores[name] for name in x_metrics if name in scores) / len([name for name in x_metrics if name in scores])
+    player_y = sum(scores[name] for name in y_metrics if name in scores) / len([name for name in y_metrics if name in scores])
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=available.x, y=available.y, mode="markers", marker=dict(size=6, color="rgba(91,120,115,.34)"), hoverinfo="skip", showlegend=False))
+    fig.add_trace(go.Scatter(x=[player_x], y=[player_y], mode="markers", marker=dict(size=16, color=BURGUNDY, line=dict(color="white", width=3)), name="Selected player", hovertemplate="<b>Selected player</b><extra></extra>"))
+    fig.add_hline(y=50, line=dict(color="#D8CDBE", dash="dot", width=1))
+    fig.add_vline(x=50, line=dict(color="#D8CDBE", dash="dot", width=1))
+    fig.update_layout(height=280, margin=dict(l=16,r=12,t=16,b=42), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(range=[0,100], title=x_title, showticklabels=False, gridcolor="#E8E1D7", zeroline=False, title_font=dict(size=10,color=MUTED)),
+        yaxis=dict(range=[0,100], title=y_title, showticklabels=False, gridcolor="#E8E1D7", zeroline=False, title_font=dict(size=10,color=MUTED)), showlegend=False)
+    return fig
+
+
+def evidence_strip_figure(canonical_id: str) -> go.Figure | None:
+    _, scores, coverage = position_metrics(canonical_id)
+    if not scores:
+        return None
+    labels = list(scores)
+    z = [[coverage[label][0] / coverage[label][1] for label in labels]]
+    text = [[f"{coverage[label][0]} of {coverage[label][1]} supporting measures" for label in labels]]
+    fig = go.Figure(go.Heatmap(z=z, x=labels, y=["Recorded evidence"], zmin=0, zmax=1,
+        colorscale=[[0, "#ECE6DC"], [.5, "#C5D7D1"], [1, "#5F8D87"]], showscale=False,
+        text=text, hovertemplate="<b>%{x}</b><br>%{text}<extra></extra>", xgap=3, ygap=3))
+    fig.update_layout(height=132, margin=dict(l=5,r=5,t=16,b=58), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(tickangle=-23, tickfont=dict(size=10,color=NAVY)), yaxis=dict(showticklabels=False))
+    return fig
+
+
+def render_player_canvas(canonical_id: str) -> None:
+    """Hybrid Film Room / Decision Board. Each visual can enter a deliberate focus state."""
+    charts = {
+        "Profile fingerprint": (profile_fingerprint_figure, "The player is highlighted against actual profiles from the same positional peer group."),
+        "Role pathways": (role_landscape_figure, "Colour shows the player’s supported fit across the positional actions required by each tactical pathway."),
+        "Peer context": (peer_context_figure, "The selected player is placed among same-position peers using the two most relevant action families."),
+        "Evidence strip": (evidence_strip_figure, "This shows how much direct evidence supports each position-specific action family."),
+        "Position mobility": (position_versatility_figure, "Each point estimates the player against the target position’s peer group; it is not a recommendation on its own."),
+    }
+    focus_key = f"canvas_focus_{canonical_id}"
+    focus = st.session_state.get(focus_key, "")
+    if focus:
+        st.button("← Return to analysis board", key=f"canvas_return_{canonical_id}", on_click=lambda: st.session_state.pop(focus_key, None))
+        figure, note = charts[focus]
+        st.markdown(f"<div class='profile-section-head' style='margin-top:.7rem'>{esc(focus)}</div>", unsafe_allow_html=True)
+        chart = figure(canonical_id)
+        if chart:
+            chart.update_layout(height=650)
+            st.plotly_chart(chart, width="stretch", config={"displayModeBar": True}, key=f"canvas_focus_plot_{focus}_{canonical_id}")
+            st.caption(note)
+        else:
+            st.markdown("<div class='profile-empty'>There is not enough recorded evidence to render this view yet.</div>", unsafe_allow_html=True)
+        return
+
+    st.markdown("<div class='profile-section-head'>Scouting analysis board</div>", unsafe_allow_html=True)
+    st.caption("Choose any visual to enter focus view; return to the board without losing the player context.")
+    main, side = st.columns([1.62, 1], gap="medium")
+    with main:
+        with st.container(border=True):
+            header, action = st.columns([4, 1])
+            header.markdown("<div class='profile-section-head'>Profile fingerprint</div>", unsafe_allow_html=True)
+            if action.button("Expand", key=f"canvas_open_fingerprint_{canonical_id}"):
+                st.session_state[focus_key] = "Profile fingerprint"
+                st.rerun()
+            chart = profile_fingerprint_figure(canonical_id)
+            if chart:
+                st.plotly_chart(chart, width="stretch", config={"displayModeBar": False}, key=f"canvas_fingerprint_{canonical_id}")
+            else:
+                st.markdown("<div class='profile-empty'>Not enough evidence for a positional fingerprint yet.</div>", unsafe_allow_html=True)
+    with side:
+        for name in ("Role pathways", "Peer context"):
+            with st.container(border=True):
+                header, action = st.columns([4, 1])
+                header.markdown(f"<div class='profile-section-head'>{esc(name)}</div>", unsafe_allow_html=True)
+                if action.button("Expand", key=f"canvas_open_{name}_{canonical_id}"):
+                    st.session_state[focus_key] = name
+                    st.rerun()
+                chart = charts[name][0](canonical_id)
+                if chart:
+                    st.plotly_chart(chart, width="stretch", config={"displayModeBar": False}, key=f"canvas_{name}_{canonical_id}")
+                else:
+                    st.caption("Not enough supporting evidence yet.")
+    lower_left, lower_right = st.columns([1.15, 1], gap="medium")
+    for column, name in ((lower_left, "Evidence strip"), (lower_right, "Position mobility")):
+        with column:
+            with st.container(border=True):
+                header, action = st.columns([4, 1])
+                header.markdown(f"<div class='profile-section-head'>{esc(name)}</div>", unsafe_allow_html=True)
+                if action.button("Expand", key=f"canvas_open_{name}_{canonical_id}"):
+                    st.session_state[focus_key] = name
+                    st.rerun()
+                chart = charts[name][0](canonical_id)
+                if chart:
+                    st.plotly_chart(chart, width="stretch", config={"displayModeBar": False}, key=f"canvas_{name}_{canonical_id}")
+                else:
+                    st.caption("Not enough supporting evidence yet.")
+
+
 def position_versatility_figure(canonical_id: str) -> go.Figure | None:
     """Plot alternative-lane fit from target-lane percentiles, never source-lane averages."""
     current = sql("SELECT position FROM players WHERE canonical_id=?", (canonical_id,))
@@ -2230,35 +2411,7 @@ elif page == "Player Profile":
     with st.container():
         tabs = st.tabs(["Overview", "Technical profile", "Career", "Market", "Availability"])
         with tabs[0]:
-            with st.container(border=True):
-                st.markdown("<div class='profile-section-head'>Position profile vs academy peers</div>", unsafe_allow_html=True)
-                peer_profile = peer_distribution_figure(canonical_id)
-                if peer_profile:
-                    st.plotly_chart(peer_profile, width="stretch", config={"displayModeBar": False}, key=f"overview_peer_profile_{canonical_id}")
-                    st.caption("Grey bands show the peer distribution for this position. The bronze marker is the player; missing measures are omitted.")
-                else:
-                    st.markdown("<div class='profile-empty'>There is not enough recorded evidence to build a positional profile yet.</div>", unsafe_allow_html=True)
-            with st.container(border=True):
-                st.markdown("<div class='profile-section-head'>Market snapshot</div>", unsafe_allow_html=True)
-                st.markdown(metric("Latest recorded value", latest_value, safe(dated_values.iloc[0].value_date) if not dated_values.empty else ""), unsafe_allow_html=True)
-                market_chart = dated_values.dropna(subset=["date", "market_value_numeric"]).sort_values("date").copy() if not dated_values.empty else dated_values
-                if len(market_chart) >= 2:
-                    market_chart["market_label"] = [format_market_value(row.market_value, row.market_value_numeric) for _, row in market_chart.iterrows()]
-                    figure = go.Figure(go.Scatter(x=market_chart.date, y=market_chart.market_value_numeric, mode="lines+markers", line=dict(color=BURGUNDY, width=3), marker=dict(size=7, color=GOLD), text=market_chart.market_label, hovertemplate="%{x|%d %b %Y}<br>%{text}<extra></extra>"))
-                    figure.update_layout(height=220, margin=dict(l=8, r=8, t=12, b=16), yaxis=dict(gridcolor=BORDER, tickprefix="€", title=""), xaxis_title="", paper_bgcolor=SURFACE, plot_bgcolor=SURFACE)
-                    st.plotly_chart(figure, width="stretch", config={"displayModeBar": False})
-                elif dated_values.empty:
-                    st.markdown("<div class='profile-empty'>No market history is recorded for this player.</div>", unsafe_allow_html=True)
-                else:
-                    st.caption(f"Latest checkpoint · {safe(dated_values.iloc[0].value_date)} · {safe(dated_values.iloc[0].club)}")
-                st.caption("Open the Market tab for all valuation checkpoints.")
-            render_role_fit(canonical_id, profile_key)
-            versatility = position_versatility_figure(canonical_id)
-            if versatility:
-                with st.container(border=True):
-                    st.markdown("<div class='profile-section-head'>Position versatility</div>", unsafe_allow_html=True)
-                    st.plotly_chart(versatility, width="stretch", config={"displayModeBar": False}, key=f"versatility_overview_{canonical_id}")
-                    st.caption("Each point estimates fit against the target position’s academy peer group. Point size reflects available supporting evidence.")
+            render_player_canvas(canonical_id)
         with tabs[1]:
             with st.container(border=True):
                 st.markdown("<div class='profile-section-head'>Position DNA</div>", unsafe_allow_html=True)
