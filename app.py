@@ -19,16 +19,17 @@ ROOT = Path(__file__).resolve().parent
 DB_PATH = ROOT / "data" / "scouting.sqlite3"
 ROLE_CRITERIA_PATH = ROOT / "data" / "role_criteria.json"
 
-NAVY = "#1F3446"
-NAVY_2 = "#2E4658"
-GOLD = "#A8793F"
-GOLD_2 = "#D7B98E"
-BURGUNDY = "#9A6D3A"
-MUTED = "#687783"
-BORDER = "#DDD8CF"
-PAGE_BG = "#F1EFEA"
-SURFACE = "#FAF9F6"
-SOFT_SURFACE = "#F5F1EA"
+# A restrained night-mode system: analytical, calm, and deliberately not "sports app" loud.
+NAVY = "#E7EDF5"
+NAVY_2 = "#111A26"
+GOLD = "#2DD4BF"
+GOLD_2 = "#8FF3E3"
+BURGUNDY = "#86A9FF"
+MUTED = "#9AABBD"
+BORDER = "#2B3A4B"
+PAGE_BG = "#0A1018"
+SURFACE = "#121C28"
+SOFT_SURFACE = "#192634"
 
 
 st.set_page_config(
@@ -47,7 +48,7 @@ html, body, [class*="css"] {{ font-family: Inter, ui-sans-serif, system-ui, -app
 .block-container {{ max-width:1540px; padding-top:1.45rem; padding-bottom:4rem; }}
 header[data-testid="stHeader"] {{ background:transparent; }}
 [data-testid="stToolbar"], [data-testid="stDecoration"], [data-testid="stStatusWidget"] {{ display:none !important; }}
-section[data-testid="stSidebar"] {{ background:linear-gradient(180deg,{NAVY} 0%,{NAVY_2} 100%); border-right:4px solid {GOLD}; }}
+section[data-testid="stSidebar"] {{ background:linear-gradient(180deg,#0B121D 0%,#111A26 100%); border-right:2px solid {GOLD}; }}
 section[data-testid="stSidebar"] * {{ color:white; }}
 section[data-testid="stSidebar"] [data-baseweb="radio"] > div {{ gap:.15rem; }}
 section[data-testid="stSidebar"] label[data-baseweb="radio"] {{ padding:.42rem .45rem; border-radius:10px; }}
@@ -57,7 +58,7 @@ section[data-testid="stSidebar"] div[role="radiogroup"] p {{ font-weight:800; }}
 .tool-brand .ey {{ font-size:.72rem; letter-spacing:.16em; color:{GOLD_2}; font-weight:900; text-transform:uppercase; }}
 .tool-brand .name {{ font-size:1.42rem; line-height:1.05; font-weight:950; color:white; margin-top:.28rem; }}
 .tool-brand .sub {{ font-size:.76rem; color:#CBD5E1; margin-top:.4rem; }}
-.st-key-app_top_nav {{ border-bottom:1px solid {BORDER}; padding:.35rem .2rem .2rem; margin-bottom:.85rem; background:rgba(250,249,246,.97); }}
+.st-key-app_top_nav {{ border-bottom:1px solid {BORDER}; padding:.35rem .2rem .2rem; margin-bottom:.85rem; background:rgba(10,16,24,.94); }}
 .st-key-app_top_nav [data-testid="stHorizontalBlock"] {{ align-items:center; }}
 .app-brand {{ display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:950;color:{NAVY};white-space:nowrap; }}
 .st-key-app_top_nav .stButton>button {{ border:0 !important;border-radius:0 !important;background:transparent !important;min-height:2.45rem;font-size:.8rem !important;padding:.2rem .3rem !important; }}
@@ -68,30 +69,30 @@ section[data-testid="stSidebar"] div[role="radiogroup"] p {{ font-weight:800; }}
 .page-title {{ color:{NAVY}; font-size:2.15rem; line-height:1.06; font-weight:950; margin:.16rem 0 .2rem; letter-spacing:-.035em; }}
 .page-sub {{ color:{MUTED}; font-size:.93rem; max-width:850px; }}
 .gold-rule {{ width:54px; height:4px; border-radius:99px; background:{GOLD}; margin-top:.72rem; }}
-.panel {{ background:{SURFACE}; border:1px solid {BORDER}; border-radius:20px; box-shadow:0 10px 30px rgba(31,52,70,.055); padding:18px; }}
+.panel {{ background:{SURFACE}; border:1px solid {BORDER}; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,.20); padding:18px; }}
 .panel-tight {{ padding:14px; }}
 .section-title {{ font-size:1.04rem; color:{NAVY}; font-weight:950; margin:0 0 .7rem; }}
 .section-note {{ color:{MUTED}; font-size:.79rem; margin-top:-.42rem; margin-bottom:.8rem; }}
-.metric-card {{ background:{SURFACE}; border:1px solid {BORDER}; border-radius:16px; padding:14px 15px; box-shadow:0 7px 20px rgba(31,52,70,.04); min-height:86px; }}
-.metric-label {{ color:#718096; text-transform:uppercase; letter-spacing:.08em; font-size:.66rem; font-weight:900; }}
+.metric-card {{ background:{SURFACE}; border:1px solid {BORDER}; border-radius:16px; padding:14px 15px; box-shadow:0 7px 20px rgba(0,0,0,.14); min-height:86px; }}
+.metric-label {{ color:{MUTED}; text-transform:uppercase; letter-spacing:.08em; font-size:.66rem; font-weight:900; }}
 .metric-value {{ color:{NAVY}; font-weight:950; font-size:1.55rem; line-height:1.15; margin-top:.28rem; }}
 .metric-note {{ color:{MUTED}; font-size:.72rem; margin-top:.2rem; }}
 .club-hero {{ display:flex; align-items:center; gap:18px; min-height:122px; }}
 .club-logo-box {{ width:96px; height:96px; border-radius:20px; background:{SURFACE}; border:1px solid {BORDER}; display:flex; align-items:center; justify-content:center; flex:0 0 auto; box-shadow:0 7px 20px rgba(31,52,70,.05); }}
 .club-logo-box img {{ max-width:75px; max-height:75px; object-fit:contain; }}
-.club-logo-fallback {{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:{NAVY}; font-size:.9rem; font-weight:950; letter-spacing:.04em; background:linear-gradient(145deg,#F8F6F1,#E9E3D8); border-radius:inherit; }}
+.club-logo-fallback {{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:{NAVY}; font-size:.9rem; font-weight:950; letter-spacing:.04em; background:linear-gradient(145deg,#1E2B3A,#121C28); border-radius:inherit; }}
 .club-name {{ font-size:2rem; line-height:1.05; font-weight:950; color:{NAVY}; letter-spacing:-.03em; }}
 .meta-line {{ color:{MUTED}; font-size:.88rem; margin-top:.35rem; }}
-.pill {{ display:inline-block; margin:.55rem .35rem 0 0; padding:.36rem .66rem; border-radius:999px; font-size:.7rem; font-weight:900; border:1px solid rgba(214,165,0,.3); background:rgba(214,165,0,.10); color:{NAVY}; }}
-.pill.dark {{ background:{NAVY}; border-color:{NAVY}; color:white; }}
-.pill.good {{ background:#ECFDF5; border-color:#A7F3D0; color:#065F46; }}
+.pill {{ display:inline-block; margin:.55rem .35rem 0 0; padding:.36rem .66rem; border-radius:999px; font-size:.7rem; font-weight:900; border:1px solid rgba(45,212,191,.32); background:rgba(45,212,191,.10); color:{NAVY}; }}
+.pill.dark {{ background:#223346; border-color:#304861; color:{NAVY}; }}
+.pill.good {{ background:rgba(45,212,191,.14); border-color:rgba(45,212,191,.42); color:{GOLD_2}; }}
 .club-card {{ height:156px; background:{SURFACE}; border:1px solid {BORDER}; border-radius:17px; padding:13px; box-shadow:0 7px 18px rgba(31,52,70,.045); display:flex; align-items:center; gap:12px; }}
 .club-card-logo {{ width:62px; height:62px; flex:0 0 auto; border-radius:14px; background:{SOFT_SURFACE}; display:flex; align-items:center; justify-content:center; border:1px solid {BORDER}; }}
 .club-card-logo img {{ max-width:49px; max-height:49px; object-fit:contain; }}
 .club-card-name {{ font-weight:950; color:{NAVY}; font-size:.95rem; line-height:1.12; }}
 .club-card-meta {{ color:{MUTED}; font-size:.73rem; margin-top:.28rem; line-height:1.3; }}
 .player-card {{ background:{SURFACE}; border:1px solid {BORDER}; border-radius:18px; padding:13px; box-shadow:0 8px 23px rgba(31,52,70,.05); min-height:335px; }}
-.photo-wrap {{ position:relative; width:100%; aspect-ratio:1/1.08; border-radius:14px; overflow:hidden; background:linear-gradient(145deg,#E9E3D8,#F8F6F1); display:flex; align-items:center; justify-content:center; border:1px solid {BORDER}; }}
+.photo-wrap {{ position:relative; width:100%; aspect-ratio:1/1.08; border-radius:14px; overflow:hidden; background:linear-gradient(145deg,#1E2B3A,#101923); display:flex; align-items:center; justify-content:center; border:1px solid {BORDER}; }}
 .photo-wrap.small {{ width:115px; aspect-ratio:1/1.08; flex:0 0 auto; }}
 .photo-wrap.hero {{ width:96px; aspect-ratio:1/1.10; flex:0 0 96px; }}
 .photo-initial {{ color:#94A3B8; font-size:1.8rem; font-weight:950; letter-spacing:.02em; }}
@@ -101,7 +102,7 @@ section[data-testid="stSidebar"] div[role="radiogroup"] p {{ font-weight:800; }}
 .mv {{ color:{NAVY}; font-size:.78rem; font-weight:900; margin-top:.46rem; }}
 .profile-head {{ display:flex; gap:19px; align-items:flex-start; }}
 .player-name {{ color:{NAVY}; font-size:clamp(1.25rem,2vw,1.7rem); font-weight:950; line-height:1.08; letter-spacing:-.025em; overflow-wrap:anywhere; word-break:normal; max-width:100%; }}
-.player-club {{ color:#475569; font-size:.97rem; font-weight:850; margin-top:.32rem; }}
+.player-club {{ color:#C3D0DD; font-size:.97rem; font-weight:850; margin-top:.32rem; }}
 .player-meta {{ color:{MUTED}; font-size:.84rem; line-height:1.55; margin-top:.5rem; }}
 .profile-sidebar {{ position:sticky; top:1rem; }}
 .profile-photo {{ width:100%; max-width:210px; aspect-ratio:.86/1; margin:0 auto 1rem; border-radius:15px; }}
@@ -109,10 +110,10 @@ section[data-testid="stSidebar"] div[role="radiogroup"] p {{ font-weight:800; }}
 .profile-hero-row {{ display:flex; align-items:center; gap:22px; }}
 .profile-chip-row {{ display:flex; flex-wrap:wrap; gap:7px; margin-top:.75rem; }}
 .profile-chip {{ display:inline-flex; align-items:center; min-height:28px; border-radius:8px; padding:.28rem .62rem; background:{SOFT_SURFACE}; color:{NAVY}; font-size:.75rem; font-weight:750; }}
-.profile-chip.position {{ color:{BURGUNDY}; background:rgba(127,29,29,.08); }}
+.profile-chip.position {{ color:{BURGUNDY}; background:rgba(134,169,255,.13); }}
 .profile-player-name {{ color:{NAVY}; font-size:1.45rem; line-height:1.13; font-weight:900; letter-spacing:-.025em; overflow-wrap:anywhere; }}
 .profile-academy {{ color:{MUTED}; font-size:.82rem; margin-top:.35rem; }}
-.profile-position {{ display:inline-block; margin-top:.65rem; padding:.3rem .62rem; border-radius:7px; color:{BURGUNDY}; background:rgba(127,29,29,.08); font-size:.76rem; font-weight:850; }}
+.profile-position {{ display:inline-block; margin-top:.65rem; padding:.3rem .62rem; border-radius:7px; color:{BURGUNDY}; background:rgba(134,169,255,.13); font-size:.76rem; font-weight:850; }}
 .role-identity-row {{ display:flex; flex-wrap:wrap; gap:7px; margin-top:.72rem; }}
 .role-identity-chip {{ display:inline-flex; align-items:center; gap:6px; border:1px solid {BORDER}; border-radius:9px; padding:.38rem .58rem; background:{SOFT_SURFACE}; color:{NAVY}; font-size:.71rem; }}
 .role-identity-chip b {{ font-weight:900; }}
@@ -121,10 +122,10 @@ section[data-testid="stSidebar"] div[role="radiogroup"] p {{ font-weight:800; }}
 .profile-fact span {{ display:block; color:{MUTED}; font-size:.67rem; text-transform:uppercase; letter-spacing:.06em; }}
 .profile-fact b {{ display:block; color:{NAVY}; font-size:.82rem; font-weight:800; overflow-wrap:anywhere; }}
 .profile-section-head {{ color:{NAVY}; font-size:1rem; font-weight:900; margin:0 0 .65rem; }}
-.profile-empty {{ border:1px dashed #C9C0B3; border-radius:13px; padding:1rem; color:{MUTED}; background:{SOFT_SURFACE}; font-size:.84rem; }}
+.profile-empty {{ border:1px dashed #3B4C5D; border-radius:13px; padding:1rem; color:{MUTED}; background:{SOFT_SURFACE}; font-size:.84rem; }}
 .attr-row {{ display:grid; grid-template-columns:minmax(116px,1fr) 2.2fr 36px; gap:8px; align-items:center; margin:.47rem 0; }}
-.attr-name {{ font-size:.74rem; color:#475569; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
-.attr-track {{ height:7px; background:#E8E1D7; border-radius:999px; overflow:hidden; }}
+.attr-name {{ font-size:.74rem; color:#C3D0DD; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+.attr-track {{ height:7px; background:#263545; border-radius:999px; overflow:hidden; }}
 .attr-fill {{ height:100%; background:linear-gradient(90deg,{NAVY},{BURGUNDY}); border-radius:999px; }}
 .attr-score {{ color:{NAVY}; font-size:.72rem; font-weight:950; text-align:right; }}
 .signal-card {{ border:1px solid {BORDER}; border-radius:15px; padding:12px 13px; background:linear-gradient(145deg,{SURFACE},{SOFT_SURFACE}); margin:.38rem 0; }}
@@ -132,8 +133,8 @@ section[data-testid="stSidebar"] div[role="radiogroup"] p {{ font-weight:800; }}
 .signal-title {{ color:{NAVY}; font-size:.86rem; font-weight:900; }}
 .signal-score {{ color:{NAVY}; font-size:1.05rem; font-weight:950; white-space:nowrap; }}
 .signal-note {{ color:{MUTED}; font-size:.72rem; line-height:1.4; margin-top:.35rem; }}
-.signal-track {{ height:8px; background:#E8E1D7; border-radius:999px; overflow:hidden; margin-top:.55rem; }}
-.signal-fill {{ height:100%; border-radius:999px; background:linear-gradient(90deg,#C5A77F,{BURGUNDY}); }}
+.signal-track {{ height:8px; background:#263545; border-radius:999px; overflow:hidden; margin-top:.55rem; }}
+.signal-fill {{ height:100%; border-radius:999px; background:linear-gradient(90deg,{GOLD},{BURGUNDY}); }}
 .insight-card {{ min-height:106px; border-radius:16px; padding:13px 14px; background:linear-gradient(145deg,{SOFT_SURFACE},{SURFACE}); border:1px solid {BORDER}; }}
 .insight-label {{ color:{MUTED}; text-transform:uppercase; letter-spacing:.07em; font-size:.62rem; font-weight:900; }}
 .insight-value {{ color:{NAVY}; font-size:1.05rem; line-height:1.2; font-weight:950; margin-top:.35rem; }}
@@ -143,7 +144,7 @@ section[data-testid="stSidebar"] div[role="radiogroup"] p {{ font-weight:800; }}
 .history-card {{ border-left:3px solid {GOLD}; padding:3px 0 3px 12px; margin:.3rem 0 .55rem; }}
 .history-title {{ color:{NAVY}; font-weight:900; font-size:.9rem; }}
 .history-meta {{ color:{MUTED}; font-size:.72rem; margin-top:.2rem; }}
-.tag-soft {{ display:inline-block; border-radius:999px; background:{SOFT_SURFACE}; color:#596875; padding:.18rem .5rem; font-size:.66rem; font-weight:850; margin:.25rem .25rem 0 0; }}
+.tag-soft {{ display:inline-block; border-radius:999px; background:{SOFT_SURFACE}; color:{MUTED}; padding:.18rem .5rem; font-size:.66rem; font-weight:850; margin:.25rem .25rem 0 0; }}
 .role-row {{ display:flex; justify-content:space-between; align-items:center; padding:.45rem 0; border-bottom:1px solid #E8E1D7; gap:10px; }}
 .role-row:last-child {{ border-bottom:0; }}
 .role-name {{ color:#475569; font-size:.78rem; font-weight:750; }}
@@ -154,15 +155,16 @@ section[data-testid="stSidebar"] div[role="radiogroup"] p {{ font-weight:800; }}
 .compare-meta {{ color:{MUTED}; font-size:.72rem; margin-top:.18rem; }}
 .stButton>button {{ border-radius:11px !important; border:1px solid {BORDER} !important; background:{SURFACE} !important; color:{NAVY} !important; font-weight:850 !important; min-height:2.35rem; box-shadow:none !important; }}
 .stButton>button:hover {{ border-color:{GOLD} !important; color:{NAVY} !important; }}
-button[kind="primary"] {{ background:{NAVY} !important; color:white !important; border-color:{NAVY} !important; }}
+button[kind="primary"] {{ background:{GOLD} !important; color:#071116 !important; border-color:{GOLD} !important; }}
 [data-baseweb="select"] > div, .stTextInput input {{ border-radius:11px !important; }}
-[data-baseweb="select"] > div, .stTextInput input, [data-testid="stNumberInput"] input {{ background:{SURFACE} !important; border-color:{BORDER} !important; }}
+[data-baseweb="select"] > div, .stTextInput input, [data-testid="stNumberInput"] input {{ background:{SURFACE} !important; border-color:{BORDER} !important; color:{NAVY} !important; -webkit-text-fill-color:{NAVY} !important; }}
 [data-testid="stVerticalBlockBorderWrapper"] {{ background:{SURFACE}; border-color:{BORDER} !important; }}
 [data-baseweb="popover"] {{ color:{NAVY}; }}
 section[data-testid="stSidebar"] [data-baseweb="select"] > div {{ background:{SURFACE} !important; }}
-section[data-testid="stSidebar"] [data-baseweb="select"] *, section[data-testid="stSidebar"] input {{ color:#0F172A !important; -webkit-text-fill-color:#0F172A !important; }}
-section[data-testid="stSidebar"] [data-baseweb="select"] [role="listbox"] *, [data-baseweb="popover"] [role="listbox"] * {{ color:#0F172A !important; -webkit-text-fill-color:#0F172A !important; }}
-section[data-testid="stSidebar"] [data-baseweb="select"] svg {{ fill:#0F172A !important; }}
+section[data-testid="stSidebar"] [data-baseweb="select"] *, section[data-testid="stSidebar"] input {{ color:{NAVY} !important; -webkit-text-fill-color:{NAVY} !important; }}
+section[data-testid="stSidebar"] [data-baseweb="select"] [role="listbox"] *, [data-baseweb="popover"] [role="listbox"] * {{ color:{NAVY} !important; -webkit-text-fill-color:{NAVY} !important; background:{SURFACE} !important; }}
+section[data-testid="stSidebar"] [data-baseweb="select"] svg {{ fill:{NAVY} !important; }}
+[data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] li, [data-testid="stCaptionContainer"], label, .stSelectbox label {{ color:{NAVY}; }}
 [data-testid="stDataFrame"] {{ border:1px solid {BORDER}; border-radius:14px; overflow:hidden; background:{SURFACE}; }}
 [data-testid="stTabs"] button {{ font-weight:850; }}
 @media(max-width:900px) {{ .page-title{{font-size:1.75rem}} .player-name{{font-size:1.35rem}} .photo-wrap.hero{{width:88px;flex-basis:88px}} }}
@@ -2025,6 +2027,26 @@ if page == "Academy Directory":
     @media(max-width:1100px){.directory-title-row{align-items:flex-start;flex-direction:column}.directory-stats{width:100%;justify-content:flex-start}.directory-stat{min-width:78px}.st-key-directory_workspace>div[data-testid="stHorizontalBlock"]{flex-direction:column}.st-key-directory_filters,.st-key-directory_map,.st-key-directory_details{min-height:auto;border-right:0;border-bottom:1px solid #DDD8CF}.st-key-directory_map .js-plotly-plot{height:620px !important;}}
     </style>
     """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <style>
+    .st-key-directory_top_nav {{background:{PAGE_BG} !important;border-color:{BORDER} !important;}}
+    .directory-brand,.directory-title-main,.directory-stat b,.directory-filter-title,.directory-filter-label,.directory-list-head,.directory-detail-name,.directory-tab,.directory-fact b,.directory-section-title,.directory-squad-card b,.directory-breakdown b {{color:{NAVY} !important;}}
+    .directory-kicker,.directory-pin {{color:{GOLD} !important;}}
+    .directory-title-line span,.directory-stat small,.directory-detail-region,.directory-overview,.directory-fact span,.directory-squad-card span,.directory-breakdown div,.directory-list-head span {{color:{MUTED} !important;}}
+    .st-key-directory_workspace,.st-key-directory_filters,.st-key-directory_list,.st-key-directory_details {{background:{SURFACE} !important;border-color:{BORDER} !important;}}
+    .st-key-directory_map {{background:#0E1722 !important;border-color:{BORDER} !important;}}
+    .st-key-directory_filters [data-testid="stTextInputRootElement"],.st-key-directory_filters .react-aria-ComboBox [role="group"] {{background:{SOFT_SURFACE} !important;border-color:{BORDER} !important;box-shadow:none !important;}}
+    .st-key-directory_filters label p,.st-key-directory_list .stButton>button {{color:{NAVY} !important;}}
+    .st-key-directory_list .stButton>button {{background:transparent !important;border-color:{BORDER} !important;}}
+    .dir-list-logo,.directory-detail-logo {{background:{SOFT_SURFACE} !important;border-color:{BORDER} !important;}}
+    .directory-fact,.directory-breakdown,.st-key-directory_details .stRadio [role="radiogroup"] {{background:{SOFT_SURFACE} !important;border-color:{BORDER} !important;}}
+    .directory-squad-card {{background:linear-gradient(90deg,{SURFACE},{SOFT_SURFACE}) !important;border-color:{BORDER} !important;}}
+    .directory-breakdown div,.directory-stat {{border-color:{BORDER} !important;}}
+    .st-key-directory_details .stRadio label:has(input:checked) {{background:{GOLD} !important;}}
+    .st-key-directory_details .stRadio label:has(input:checked) p {{color:#071116 !important;}}
+    .st-key-directory_details .stButton>button {{border-color:{GOLD} !important;color:{GOLD_2} !important;background:{SOFT_SURFACE} !important;}}
+    </style>
+    """, unsafe_allow_html=True)
 
     st.markdown(
         f"<div class='directory-title-row'><div><div class='directory-kicker'>03 Regional scouting</div>"
@@ -2106,10 +2128,10 @@ if page == "Academy Directory":
                 ring = polygon[0]
                 fig.add_trace(go.Scattermap(
                     lon=[point[0] for point in ring], lat=[point[1] for point in ring],
-                    mode="lines", fill="toself", fillcolor="rgba(250,251,250,.94)",
-                    line=dict(color="#92AAA7", width=1.05), hoverinfo="skip", showlegend=False, name=name,
+                    mode="lines", fill="toself", fillcolor="rgba(20,31,43,.96)",
+                    line=dict(color="#40556A", width=1.05), hoverinfo="skip", showlegend=False, name=name,
                 ))
-        category_colors = {"Category 1":"#B79A64", "Category 2":"#6F9993", "Category 3":"#607A92", "Category 4":"#A9B5BD"}
+        category_colors = {"Category 1":"#2DD4BF", "Category 2":"#86A9FF", "Category 3":"#B794F4", "Category 4":"#6B8197"}
         mapped = shown.dropna(subset=["lat", "lon"]).copy()
         # Place each regional label at a point inside its real boundary.
         region_anchors = {"North East": (-1.9, 55.0), "North West": (-2.7, 53.95),
@@ -2152,11 +2174,11 @@ if page == "Academy Directory":
             ))
         if regions or not mapped.empty:
             fig.update_layout(
-                height=755, margin=dict(l=0,r=0,t=0,b=0), paper_bgcolor="#EAF0EF",
-                map=dict(style="open-street-map", center=dict(lat=52.65, lon=-1.55), zoom=5.4),
+                height=755, margin=dict(l=0,r=0,t=0,b=0), paper_bgcolor="#0E1722",
+                map=dict(style="carto-darkmatter", center=dict(lat=52.65, lon=-1.55), zoom=5.4),
                 legend=dict(
                     title=dict(text="<b>Academy Category</b>"), orientation="v", y=.985, yanchor="top", x=.985, xanchor="right",
-                    bgcolor="rgba(255,255,255,.94)", bordercolor="#D7E1EA", borderwidth=1, font=dict(size=10, color="#0B1F3A"),
+                    bgcolor="rgba(18,28,40,.94)", bordercolor="#2B3A4B", borderwidth=1, font=dict(size=10, color="#E7EDF5"),
                 ),
                 clickmode="event+select", uirevision="directory_regional_map_v4",
             )
@@ -2252,6 +2274,14 @@ elif page == "Club Profile":
     .roster-card-signals {display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
     .roster-card-signal {display:inline-flex;align-items:center;border:1px solid #DDD8CF;border-radius:999px;padding:.18rem .42rem;font-size:.6rem;color:#687783;background:#FAF9F6;}
     [class*="st-key-roster_card_"] .stButton>button {min-height:1.95rem !important;font-size:.68rem !important;margin-top:.35rem;}
+    </style>""", unsafe_allow_html=True)
+    st.markdown(f"""<style>
+    .squad-heading,.squad-unit-head,.roster-card-name {{color:{NAVY} !important;}}
+    .squad-unit-head,.squad-unit-head span,[class*="st-key-roster_card_"] {{border-color:{BORDER} !important;}}
+    .squad-unit-head span,.roster-card-position {{background:rgba(45,212,191,.12) !important;color:{GOLD_2} !important;}}
+    [class*="st-key-roster_card_"] {{background:linear-gradient(145deg,{SURFACE},{SOFT_SURFACE}) !important;box-shadow:0 5px 16px rgba(0,0,0,.16) !important;}}
+    .roster-card-meta,.roster-card-signal {{color:{MUTED} !important;}}
+    .roster-card-signal {{background:{SOFT_SURFACE} !important;border-color:{BORDER} !important;}}
     </style>""", unsafe_allow_html=True)
     club_logo = safe(meta.academy_logo_url, "")
     for candidate in (club_logo, safe(meta.academy_logo_fallback, "")):
