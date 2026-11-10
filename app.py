@@ -1163,6 +1163,291 @@ def overlay_radar(rows: list[pd.Series]) -> go.Figure | None:
     return figure
 
 
+# Position intelligence -------------------------------------------------------
+# These measures deliberately compare a player with the academy peer group for
+# the same positional lane.  They are not averages across unrelated football
+# attributes and unknown values are never converted to a weak score.
+POSITION_DNA = {
+    "GK": {
+        "Shot stopping": ["Reflexes", "Handling", "One On Ones", "Agility"],
+        "Area command": ["Aerial Reach", "Command Of Area", "Communication", "Punching"],
+        "Distribution": ["Kicking", "Throwing", "Passing", "First Touch"],
+        "Sweeping": ["Rushing Out", "Anticipation", "Decisions", "Pace"],
+        "Reliability": ["Positioning", "Concentration", "Composure"],
+    },
+    "ST": {
+        "Box finishing": ["Finishing", "Composure", "First Touch", "Technique"],
+        "Movement": ["Off The Ball", "Anticipation", "Acceleration", "Agility"],
+        "Link play": ["Passing", "Vision", "Teamwork", "First Touch"],
+        "Running power": ["Acceleration", "Pace", "Agility", "Balance"],
+        "Aerial threat": ["Heading", "Jumping Reach", "Strength", "Bravery"],
+        "Pressing work": ["Work Rate", "Stamina", "Aggression", "Teamwork"],
+    },
+    "AM(L/R)": {
+        "1v1 threat": ["Dribbling", "Technique", "Agility", "Acceleration"],
+        "Chance creation": ["Crossing", "Passing", "Vision", "Decisions"],
+        "Goal threat": ["Finishing", "Long Shots", "Off The Ball", "Composure"],
+        "Wide running": ["Pace", "Acceleration", "Stamina", "Off The Ball"],
+        "Ball security": ["First Touch", "Technique", "Composure", "Balance"],
+        "Defensive return": ["Work Rate", "Teamwork", "Stamina", "Anticipation"],
+    },
+    "AM(C)": {
+        "Creative progression": ["Passing", "Vision", "Technique", "Decisions"],
+        "Between-lines play": ["First Touch", "Dribbling", "Composure", "Flair"],
+        "Goal threat": ["Finishing", "Long Shots", "Off The Ball", "Composure"],
+        "Ball security": ["First Touch", "Technique", "Balance", "Composure"],
+        "Counterpress": ["Work Rate", "Teamwork", "Anticipation", "Stamina"],
+    },
+    "M(C)": {
+        "Progression": ["Passing", "Vision", "Technique", "Decisions"],
+        "Ball security": ["First Touch", "Technique", "Composure", "Balance"],
+        "Defensive coverage": ["Tackling", "Positioning", "Anticipation", "Work Rate"],
+        "Press resistance": ["Composure", "Balance", "Agility", "First Touch"],
+        "Running capacity": ["Stamina", "Work Rate", "Acceleration", "Teamwork"],
+    },
+    "DM": {
+        "Screening": ["Marking", "Tackling", "Positioning", "Concentration"],
+        "Defensive coverage": ["Anticipation", "Work Rate", "Stamina", "Teamwork"],
+        "Build-up security": ["Passing", "First Touch", "Technique", "Composure"],
+        "Progression": ["Passing", "Vision", "Decisions", "Technique"],
+        "Duelling": ["Strength", "Balance", "Aggression", "Bravery"],
+    },
+    "D(L/R)": {
+        "Wide defending": ["Marking", "Tackling", "Positioning", "Anticipation"],
+        "Recovery defending": ["Acceleration", "Pace", "Agility", "Anticipation"],
+        "Wide progression": ["Crossing", "Passing", "Technique", "Dribbling"],
+        "Running capacity": ["Stamina", "Work Rate", "Pace", "Acceleration"],
+        "Duelling": ["Strength", "Balance", "Aggression", "Bravery"],
+    },
+    "WB(L/R)": {
+        "Wide defending": ["Marking", "Tackling", "Positioning", "Anticipation"],
+        "Recovery defending": ["Acceleration", "Pace", "Agility", "Anticipation"],
+        "Wide progression": ["Crossing", "Passing", "Technique", "Dribbling"],
+        "Running capacity": ["Stamina", "Work Rate", "Pace", "Acceleration"],
+        "Duelling": ["Strength", "Balance", "Aggression", "Bravery"],
+    },
+    "D(C)": {
+        "Box defending": ["Marking", "Tackling", "Positioning", "Concentration"],
+        "Aerial dominance": ["Heading", "Jumping Reach", "Strength", "Bravery"],
+        "Recovery defending": ["Acceleration", "Pace", "Anticipation", "Agility"],
+        "Build-up security": ["Passing", "First Touch", "Technique", "Composure"],
+        "Duelling resilience": ["Strength", "Balance", "Aggression", "Decisions"],
+    },
+}
+
+
+def player_lane(position: object) -> str:
+    codes, _ = role_position_codes(position)
+    priority = ("GK", "ST", "AM(L/R)", "AM(C)", "M(L/R)", "M(C)", "DM", "WB(L/R)", "D(L/R)", "D(C)")
+    return next((code for code in priority if code in codes), "")
+
+
+@st.cache_data(show_spinner=False)
+def peer_attribute_table() -> pd.DataFrame:
+    """One normalized, de-duplicated attribute row per player/attribute."""
+    raw = sql("""
+        SELECT p.canonical_id, p.position, a.attribute, a.score, a.source
+        FROM players p JOIN attributes a ON a.canonical_id=p.canonical_id
+        WHERE a.attribute NOT LIKE 'Unlabeled slot %' AND a.score IS NOT NULL
+    """)
+    if raw.empty:
+        return raw
+    raw["score"] = pd.to_numeric(raw.score, errors="coerce")
+    raw = raw.dropna(subset=["score"])
+    source_max = raw.groupby(["canonical_id", "source"], dropna=False)["score"].transform("max")
+    raw["normalized"] = raw.score.where(source_max >= 25, raw.score * 5.0).clip(0, 100)
+    raw["lane"] = raw.position.map(player_lane)
+    return raw.groupby(["canonical_id", "lane", "attribute"], as_index=False)["normalized"].max()
+
+
+@st.cache_data(show_spinner=False)
+def peer_percentile_table() -> pd.DataFrame:
+    data = peer_attribute_table().copy()
+    if data.empty:
+        return data
+    data["percentile"] = data.groupby(["lane", "attribute"])["normalized"].rank(pct=True, method="average") * 100
+    data["peer_count"] = data.groupby(["lane", "attribute"])["canonical_id"].transform("count")
+    return data
+
+
+def player_percentile_attributes(canonical_id: str) -> dict[str, float]:
+    table = peer_percentile_table()
+    rows = table[table.canonical_id.astype(str) == str(canonical_id)] if not table.empty else table
+    return dict(zip(rows.attribute.astype(str), rows.percentile.astype(float))) if not rows.empty else {}
+
+
+def position_metrics(canonical_id: str) -> tuple[str, dict[str, float], dict[str, tuple[int, int]]]:
+    player = sql("SELECT position FROM players WHERE canonical_id=?", (canonical_id,))
+    lane = player_lane(player.iloc[0].position) if not player.empty else ""
+    template = POSITION_DNA.get(lane, {})
+    values = player_percentile_attributes(canonical_id)
+    scores: dict[str, float] = {}
+    coverage: dict[str, tuple[int, int]] = {}
+    for label, attributes in template.items():
+        observed = [values[name] for name in attributes if name in values]
+        if observed:
+            scores[label] = sum(observed) / len(observed)
+            coverage[label] = (len(observed), len(attributes))
+    return lane, scores, coverage
+
+
+def role_fit_estimates(canonical_id: str, profile_key: str | None = None) -> pd.DataFrame:
+    """Role fit: 55% core + 25% critical floor + 20% support, all peer percentiles."""
+    player = sql("SELECT position FROM players WHERE canonical_id=?", (canonical_id,))
+    if player.empty:
+        return pd.DataFrame()
+    lane = player_lane(player.iloc[0].position)
+    if not lane:
+        return pd.DataFrame()
+    values = player_percentile_attributes(canonical_id)
+    records: list[dict[str, object]] = []
+    for item in ROLE_CRITERIA:
+        positions = item.get("position", [])
+        positions = [positions] if isinstance(positions, str) else positions
+        if lane not in {str(position) for position in positions}:
+            continue
+        required = [str(name) for name in item["key_attributes"]]
+        observed = [values[name] for name in required if name in values]
+        coverage = len(observed) / len(required) if required else 0.0
+        if len(observed) < 3:
+            continue
+        core = [values[name] for name in required[:4] if name in values]
+        support = [values[name] for name in required[4:] if name in values]
+        core_mean = sum(core) / len(core) if core else sum(observed) / len(observed)
+        critical_floor = min(core) if core else min(observed)
+        support_mean = sum(support) / len(support) if support else core_mean
+        score = .55 * core_mean + .25 * critical_floor + .20 * support_mean
+        records.append({
+            "phase": str(item.get("phase", "")).replace("_", " ").title(),
+            "role": str(item["role_name"]), "score": score, "known": len(observed),
+            "required": len(required), "coverage": coverage,
+            "key_attributes": ", ".join(required), "position_basis": "peer percentile",
+        })
+    return pd.DataFrame(records).sort_values(["phase", "score"], ascending=[True, False]) if records else pd.DataFrame()
+
+
+def radar_scores(canonical_id: str, profile_key: str | None = None) -> dict[str, float] | None:
+    _, scores, _ = position_metrics(canonical_id)
+    return scores or None
+
+
+def radar_axis_details(canonical_id: str, profile_key: str | None = None) -> dict[str, tuple[str, str]]:
+    _, _, coverage = position_metrics(canonical_id)
+    return {axis: ("Peer percentile within positional lane", f"{known}/{total}") for axis, (known, total) in coverage.items()}
+
+
+def radar_figure(canonical_id: str, profile_key: str | None = None) -> go.Figure | None:
+    lane, scores, coverage = position_metrics(canonical_id)
+    if len(scores) < 3:
+        return None
+    labels = list(scores)
+    values = [scores[label] for label in labels]
+    peer = [50] * len(labels)
+    hover = [f"<b>{esc(label)}</b><br>Peer percentile: {value:.0f}<br>Evidence: {coverage[label][0]}/{coverage[label][1]} measures" for label, value in scores.items()]
+    figure = go.Figure()
+    figure.add_trace(go.Scatterpolar(r=peer + [peer[0]], theta=labels + [labels[0]], mode="lines",
+        line=dict(color="rgba(108,117,125,.50)", width=1.5, dash="dot"), fill="toself",
+        fillcolor="rgba(108,117,125,.06)", hoverinfo="skip", showlegend=False))
+    figure.add_trace(go.Scatterpolar(r=values + [values[0]], theta=labels + [labels[0]], mode="lines+markers",
+        line=dict(color=BURGUNDY, width=3), marker=dict(size=8, color=GOLD, line=dict(color="white", width=1.5)),
+        fill="toself", fillcolor="rgba(154,109,58,.16)", text=hover + [hover[0]], hovertemplate="%{text}<extra></extra>", showlegend=False))
+    figure.update_layout(height=440, margin=dict(l=55, r=55, t=12, b=20), paper_bgcolor="rgba(0,0,0,0)",
+        polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0,100], tickvals=[25,50,75,100], gridcolor="#E3DBCF", tickfont=dict(size=9, color=MUTED)),
+                   angularaxis=dict(gridcolor="#E8E1D7", linecolor="#D8CDBE", tickfont=dict(size=11, color=NAVY))))
+    return figure
+
+
+def role_fit_matrix_figure(canonical_id: str) -> go.Figure | None:
+    fits = role_fit_estimates(canonical_id)
+    if fits.empty:
+        return None
+    best = fits.sort_values("score", ascending=False).groupby("role", as_index=False).first().head(6)
+    if best.empty:
+        return None
+    fig = go.Figure(go.Heatmap(z=[best.score.tolist()], x=best.role.tolist(), y=["Role match"],
+        colorscale=[[0, "#E8E1D7"], [.5, "#9FC8C1"], [1, BURGUNDY]], zmin=0, zmax=100,
+        showscale=False,
+        hovertemplate="%{x}<br>Peer-based role fit: %{z:.0f}<extra></extra>"))
+    fig.update_layout(height=155, margin=dict(l=5,r=5,t=15,b=35), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=dict(tickangle=-22), yaxis=dict(showticklabels=False))
+    return fig
+
+
+def position_versatility_figure(canonical_id: str) -> go.Figure | None:
+    """Plot alternative-lane fit from target-lane percentiles, never source-lane averages."""
+    current = sql("SELECT position FROM players WHERE canonical_id=?", (canonical_id,))
+    if current.empty:
+        return None
+    current_lane = player_lane(current.iloc[0].position)
+    if not current_lane:
+        return None
+    adjacent = {
+        "GK": ["GK"], "ST": ["ST", "AM(C)", "AM(L/R)"],
+        "AM(L/R)": ["AM(L/R)", "M(L/R)", "AM(C)", "ST"],
+        "AM(C)": ["AM(C)", "M(C)", "ST", "AM(L/R)"],
+        "M(C)": ["M(C)", "DM", "AM(C)", "D(C)"],
+        "DM": ["DM", "M(C)", "D(C)", "D(L/R)"],
+        "D(L/R)": ["D(L/R)", "WB(L/R)", "D(C)", "DM"],
+        "WB(L/R)": ["WB(L/R)", "D(L/R)", "M(L/R)", "DM"],
+        "D(C)": ["D(C)", "DM", "D(L/R)", "WB(L/R)"],
+    }.get(current_lane, [current_lane])
+    raw = peer_attribute_table()
+    mine = raw[raw.canonical_id.astype(str) == str(canonical_id)]
+    if mine.empty:
+        return None
+    own = dict(zip(mine.attribute.astype(str), mine.normalized.astype(float)))
+    records: list[dict[str, object]] = []
+    for lane in adjacent:
+        template = POSITION_DNA.get(lane, {})
+        names = sorted({name for group in template.values() for name in group if name in own})
+        if len(names) < 3:
+            continue
+        percentages = []
+        for name in names:
+            cohort = raw[(raw.lane == lane) & (raw.attribute == name)].normalized
+            if len(cohort) >= 8:
+                percentages.append(float((cohort <= own[name]).mean() * 100))
+        if len(percentages) < 3:
+            continue
+        defend_names = {"Marking", "Tackling", "Positioning", "Anticipation", "Concentration", "Heading", "Jumping Reach", "Strength", "Bravery", "Work Rate"}
+        defend = [value for name, value in zip(names, percentages) if name in defend_names]
+        possession = [value for name, value in zip(names, percentages) if name not in defend_names]
+        records.append({"lane": lane, "defensive": sum(defend) / len(defend) if defend else sum(percentages) / len(percentages),
+                        "possession": sum(possession) / len(possession) if possession else sum(percentages) / len(percentages),
+                        "coverage": len(percentages) / len({name for group in template.values() for name in group}),
+                        "primary": lane == current_lane})
+    if not records:
+        return None
+    frame = pd.DataFrame(records)
+    fig = go.Figure()
+    fig.add_hline(y=50, line=dict(color="#D8CDBE", dash="dot", width=1))
+    fig.add_vline(x=50, line=dict(color="#D8CDBE", dash="dot", width=1))
+    fig.add_trace(go.Scatter(x=frame.defensive, y=frame.possession, mode="markers+text", text=frame.lane,
+        textposition="top center", marker=dict(size=frame.coverage * 22 + 10, color=[BURGUNDY if value else "#69968F" for value in frame.primary],
+        line=dict(color="white", width=2)), hovertemplate="<b>%{text}</b><br>Defensive suitability: %{x:.0f}<br>In-possession suitability: %{y:.0f}<extra></extra>"))
+    fig.update_layout(height=310, margin=dict(l=28,r=18,t=22,b=35), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(range=[0,100], title="Defensive suitability", gridcolor="#E8E1D7", zeroline=False),
+        yaxis=dict(range=[0,100], title="In-possession suitability", gridcolor="#E8E1D7", zeroline=False), showlegend=False,
+        annotations=[dict(x=82,y=93,text="Natural fit",showarrow=False,font=dict(color=MUTED,size=11)),dict(x=18,y=8,text="Low evidence",showarrow=False,font=dict(color=MUTED,size=11))])
+    return fig
+
+
+def render_role_fit(canonical_id: str, profile_key: str | None = None, detailed: bool = False) -> None:
+    fits = role_fit_estimates(canonical_id, profile_key)
+    st.markdown("<div class='profile-section-head'>Role fit</div>", unsafe_allow_html=True)
+    if fits.empty:
+        st.markdown("<div class='profile-empty'>There is not enough positional evidence to calculate a role profile yet.</div>", unsafe_allow_html=True)
+        return
+    matrix = role_fit_matrix_figure(canonical_id)
+    if matrix:
+        st.plotly_chart(matrix, width="stretch", config={"displayModeBar": False}, key=f"role_matrix_{'detail' if detailed else 'overview'}_{canonical_id}")
+    for phase, label in (("In Possession", "With the ball"), ("Out Of Possession", "Without the ball")):
+        row = fits[fits.phase == phase].sort_values("score", ascending=False).head(1)
+        if not row.empty:
+            best = row.iloc[0]
+            st.caption(f"{label}: {best.role} · based on {int(best.known)}/{int(best.required)} available requirements")
+    st.caption("Role fit uses peer percentiles within the player’s positional lane. Missing evidence is excluded, never treated as a low score.")
+
+
 def attr_rows_html(frame: pd.DataFrame) -> str:
     if frame.empty:
         return "<div class='empty-card'>No detailed attributes available.</div>"
@@ -1878,7 +2163,7 @@ elif page == "Player Profile":
                         row = best.iloc[0]
                         role_tags.append(
                             f"<span class='role-identity-chip'><span>{phase_label}</span>"
-                            f"<b>{esc(row.role)}</b><span>{float(row.score):.0f}/100</span></span>"
+                            f"<b>{esc(row.role)}</b></span>"
                         )
                 if role_tags:
                     st.markdown(f"<div class='role-identity-row'>{''.join(role_tags)}</div>", unsafe_allow_html=True)
@@ -1926,6 +2211,12 @@ elif page == "Player Profile":
                             f"<div class='signal-note'>Supported by {esc(coverage)} indicators</div></div>", unsafe_allow_html=True
                         )
             render_role_fit(canonical_id, profile_key)
+            versatility = position_versatility_figure(canonical_id)
+            if versatility:
+                with st.container(border=True):
+                    st.markdown("<div class='profile-section-head'>Position versatility</div>", unsafe_allow_html=True)
+                    st.plotly_chart(versatility, width="stretch", config={"displayModeBar": False}, key=f"versatility_overview_{canonical_id}")
+                    st.caption("Each point estimates fit against the target position’s academy peer group. Point size reflects available supporting evidence.")
         with tabs[1]:
             with st.container(border=True):
                 st.markdown("<div class='profile-section-head'>Technical profile</div>", unsafe_allow_html=True)
@@ -1948,6 +2239,11 @@ elif page == "Player Profile":
                             f"<div class='signal-note'>Supported by {esc(coverage)} indicators</div></div>", unsafe_allow_html=True
                         )
             render_role_fit(canonical_id, profile_key, detailed=True)
+            versatility = position_versatility_figure(canonical_id)
+            if versatility:
+                with st.container(border=True):
+                    st.markdown("<div class='profile-section-head'>Position versatility</div>", unsafe_allow_html=True)
+                    st.plotly_chart(versatility, width="stretch", config={"displayModeBar": False}, key=f"versatility_detail_{canonical_id}")
         with tabs[2]:
             transfers = load_history(canonical_id, "transfers").sort_values("transfer_date", ascending=False, na_position="last")
             performances = load_history(canonical_id, "performances")
