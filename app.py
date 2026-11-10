@@ -1545,7 +1545,6 @@ def render_player_canvas(canonical_id: str) -> None:
         "Profile fingerprint": (profile_fingerprint_figure, "The player is highlighted against actual profiles from the same positional peer group."),
         "Role pathways": (role_landscape_figure, "Colour shows the player’s supported fit across the positional actions required by each tactical pathway."),
         "Peer context": (peer_context_figure, "The selected player is placed among same-position peers using the two most relevant action families."),
-        "Evidence strip": (evidence_strip_figure, "This shows how much direct evidence supports each position-specific action family."),
         "Position mobility": (position_versatility_figure, "Each point estimates the player against the target position’s peer group; it is not a recommendation on its own."),
     }
     focus_key = f"canvas_focus_{canonical_id}"
@@ -1564,7 +1563,6 @@ def render_player_canvas(canonical_id: str) -> None:
         return
 
     st.markdown("<div class='profile-section-head'>Scouting analysis board</div>", unsafe_allow_html=True)
-    st.caption("Choose any visual to enter focus view; return to the board without losing the player context.")
     main, side = st.columns([1.62, 1], gap="medium")
     with main:
         with st.container(border=True):
@@ -1575,9 +1573,22 @@ def render_player_canvas(canonical_id: str) -> None:
                 st.rerun()
             chart = profile_fingerprint_figure(canonical_id)
             if chart:
+                chart.update_layout(height=250, margin=dict(l=8, r=8, t=6, b=48))
                 st.plotly_chart(chart, width="stretch", config={"displayModeBar": False}, key=f"canvas_fingerprint_{canonical_id}")
             else:
                 st.markdown("<div class='profile-empty'>Not enough evidence for a positional fingerprint yet.</div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            header, action = st.columns([4, 1])
+            header.markdown("<div class='profile-section-head'>Position mobility</div>", unsafe_allow_html=True)
+            if action.button("Expand", key=f"canvas_open_Position mobility_{canonical_id}"):
+                st.session_state[focus_key] = "Position mobility"
+                st.rerun()
+            chart = position_versatility_figure(canonical_id)
+            if chart:
+                chart.update_layout(height=160, margin=dict(l=18, r=12, t=5, b=28))
+                st.plotly_chart(chart, width="stretch", config={"displayModeBar": False}, key=f"canvas_Position mobility_{canonical_id}")
+            else:
+                st.caption("Not enough supporting evidence yet.")
     with side:
         for name in ("Role pathways", "Peer context"):
             with st.container(border=True):
@@ -1588,20 +1599,7 @@ def render_player_canvas(canonical_id: str) -> None:
                     st.rerun()
                 chart = charts[name][0](canonical_id)
                 if chart:
-                    st.plotly_chart(chart, width="stretch", config={"displayModeBar": False}, key=f"canvas_{name}_{canonical_id}")
-                else:
-                    st.caption("Not enough supporting evidence yet.")
-    lower_left, lower_right = st.columns([1.15, 1], gap="medium")
-    for column, name in ((lower_left, "Evidence strip"), (lower_right, "Position mobility")):
-        with column:
-            with st.container(border=True):
-                header, action = st.columns([4, 1])
-                header.markdown(f"<div class='profile-section-head'>{esc(name)}</div>", unsafe_allow_html=True)
-                if action.button("Expand", key=f"canvas_open_{name}_{canonical_id}"):
-                    st.session_state[focus_key] = name
-                    st.rerun()
-                chart = charts[name][0](canonical_id)
-                if chart:
+                    chart.update_layout(height=195, margin=dict(l=8, r=8, t=5, b=30))
                     st.plotly_chart(chart, width="stretch", config={"displayModeBar": False}, key=f"canvas_{name}_{canonical_id}")
                 else:
                     st.caption("Not enough supporting evidence yet.")
