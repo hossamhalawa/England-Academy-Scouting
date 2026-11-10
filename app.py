@@ -1550,7 +1550,9 @@ def render_player_canvas(canonical_id: str) -> None:
     focus_key = f"canvas_focus_{canonical_id}"
     focus = st.session_state.get(focus_key, "")
     if focus:
-        st.button("← Return to analysis board", key=f"canvas_return_{canonical_id}", on_click=lambda: st.session_state.pop(focus_key, None))
+        if st.button("← Return to analysis board", key=f"canvas_return_{canonical_id}"):
+            st.session_state.pop(focus_key, None)
+            st.rerun()
         figure, note = charts[focus]
         st.markdown(f"<div class='profile-section-head' style='margin-top:.7rem'>{esc(focus)}</div>", unsafe_allow_html=True)
         chart = figure(canonical_id)
