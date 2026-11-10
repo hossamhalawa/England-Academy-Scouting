@@ -1286,7 +1286,10 @@ def position_metrics(canonical_id: str) -> tuple[str, dict[str, float], dict[str
     for label, attributes in template.items():
         observed = [values[name] for name in attributes if name in values]
         if observed:
-            scores[label] = sum(observed) / len(observed)
+            # First two attributes define the action; the remaining ones support it.
+            # This prevents a single unrelated high attribute from flattening the profile.
+            weights = [2.0 if index < 2 else 1.0 for index, name in enumerate(attributes) if name in values]
+            scores[label] = sum(value * weight for value, weight in zip(observed, weights)) / sum(weights)
             coverage[label] = (len(observed), len(attributes))
     return lane, scores, coverage
 
@@ -1313,10 +1316,12 @@ def role_fit_estimates(canonical_id: str, profile_key: str | None = None) -> pd.
             continue
         core = [values[name] for name in required[:4] if name in values]
         support = [values[name] for name in required[4:] if name in values]
-        core_mean = sum(core) / len(core) if core else sum(observed) / len(observed)
+        weighted = [(values[name], 2.0 if index < 4 else 1.0) for index, name in enumerate(required) if name in values]
+        # Weighted geometric mean rewards a complete role profile.  A low critical
+        # requirement cannot be hidden by several exceptional supporting traits.
+        geometric = 100.0 * math.exp(sum(weight * math.log(max(value, 1.0) / 100.0) for value, weight in weighted) / sum(weight for _, weight in weighted))
         critical_floor = min(core) if core else min(observed)
-        support_mean = sum(support) / len(support) if support else core_mean
-        score = .55 * core_mean + .25 * critical_floor + .20 * support_mean
+        score = .78 * geometric + .22 * critical_floor
         records.append({
             "phase": str(item.get("phase", "")).replace("_", " ").title(),
             "role": str(item["role_name"]), "score": score, "known": len(observed),
@@ -1369,6 +1374,55 @@ def role_fit_matrix_figure(canonical_id: str) -> go.Figure | None:
         showscale=False,
         hovertemplate="%{x}<br>Peer-based role fit: %{z:.0f}<extra></extra>"))
     fig.update_layout(height=155, margin=dict(l=5,r=5,t=15,b=35), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=dict(tickangle=-22), yaxis=dict(showticklabels=False))
+    return fig
+
+
+@st.cache_data(show_spinner=False)
+def peer_capability_frame(lane: str) -> pd.DataFrame:
+    """Capability composites for every peer, used to draw real peer bands."""
+    table = peer_percentile_table()
+    template = POSITION_DNA.get(lane, {})
+    if table.empty or not template:
+        return pd.DataFrame(columns=["canonical_id", "metric", "score"])
+    parts: list[pd.DataFrame] = []
+    lane_rows = table[table.lane == lane]
+    for metric_name, attributes in template.items():
+        part = lane_rows[lane_rows.attribute.isin(attributes)].copy()
+        if part.empty:
+            continue
+        part["weight"] = part.attribute.map({attribute: 2.0 if index < 2 else 1.0 for index, attribute in enumerate(attributes)}).fillna(1.0)
+        grouped = part.groupby("canonical_id", as_index=False).apply(
+            lambda group: pd.Series({"score": (group.percentile * group.weight).sum() / group.weight.sum(), "evidence": len(group)}),
+            include_groups=False,
+        ).reset_index()
+        grouped["metric"] = metric_name
+        parts.append(grouped[["canonical_id", "metric", "score", "evidence"]])
+    return pd.concat(parts, ignore_index=True) if parts else pd.DataFrame(columns=["canonical_id", "metric", "score"])
+
+
+def peer_distribution_figure(canonical_id: str) -> go.Figure | None:
+    lane, scores, _ = position_metrics(canonical_id)
+    if len(scores) < 3:
+        return None
+    peers = peer_capability_frame(lane)
+    if peers.empty:
+        return None
+    labels = list(scores)
+    fig = go.Figure()
+    for label in reversed(labels):
+        sample = peers.loc[peers.metric == label, "score"]
+        if len(sample) < 8:
+            continue
+        fig.add_trace(go.Box(x=sample, y=[label] * len(sample), orientation="h", boxpoints=False,
+            fillcolor="rgba(113,128,150,.14)", line=dict(color="rgba(104,119,131,.55)", width=1),
+            marker_color="rgba(104,119,131,.15)", hoverinfo="skip", showlegend=False, width=.52))
+    fig.add_trace(go.Scatter(x=[scores[label] for label in labels], y=labels, mode="markers",
+        marker=dict(size=13, color=BURGUNDY, line=dict(color="white", width=2)),
+        text=[f"<b>{esc(label)}</b><br>Player peer percentile: {scores[label]:.0f}" for label in labels],
+        hovertemplate="%{text}<extra></extra>", showlegend=False))
+    fig.update_layout(height=max(290, 53 * len(labels) + 55), margin=dict(l=8,r=20,t=15,b=32), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(range=[0,100], showticklabels=False, title="Lower peer range                      Peer range                      Leading peer range", title_font=dict(size=10,color=MUTED), gridcolor="#E8E1D7", zeroline=False),
+        yaxis=dict(categoryorder="array", categoryarray=list(reversed(labels)), tickfont=dict(size=12, color=NAVY), gridcolor="rgba(0,0,0,0)"))
     return fig
 
 
@@ -2177,13 +2231,13 @@ elif page == "Player Profile":
         tabs = st.tabs(["Overview", "Technical profile", "Career", "Market", "Availability"])
         with tabs[0]:
             with st.container(border=True):
-                st.markdown("<div class='profile-section-head'>Technical profile</div>", unsafe_allow_html=True)
-                radar = radar_figure(canonical_id, profile_key)
-                if radar:
-                    st.plotly_chart(radar, width="stretch", config={"displayModeBar": False}, key=f"overview_radar_{canonical_id}")
-                    st.caption("Supported indicators only; unrecorded dimensions are left blank.")
+                st.markdown("<div class='profile-section-head'>Position profile vs academy peers</div>", unsafe_allow_html=True)
+                peer_profile = peer_distribution_figure(canonical_id)
+                if peer_profile:
+                    st.plotly_chart(peer_profile, width="stretch", config={"displayModeBar": False}, key=f"overview_peer_profile_{canonical_id}")
+                    st.caption("Grey bands show the peer distribution for this position. The bronze marker is the player; missing measures are omitted.")
                 else:
-                    st.markdown("<div class='profile-empty'>No supported indicators are available for this player yet.</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='profile-empty'>There is not enough recorded evidence to build a positional profile yet.</div>", unsafe_allow_html=True)
             with st.container(border=True):
                 st.markdown("<div class='profile-section-head'>Market snapshot</div>", unsafe_allow_html=True)
                 st.markdown(metric("Latest recorded value", latest_value, safe(dated_values.iloc[0].value_date) if not dated_values.empty else ""), unsafe_allow_html=True)
@@ -2198,18 +2252,6 @@ elif page == "Player Profile":
                 else:
                     st.caption(f"Latest checkpoint · {safe(dated_values.iloc[0].value_date)} · {safe(dated_values.iloc[0].club)}")
                 st.caption("Open the Market tab for all valuation checkpoints.")
-            indications = style_indications(canonical_id, profile_key)
-            if indications:
-                st.markdown("<div class='profile-section-head' style='margin-top:1rem'>Playing-style signals</div>", unsafe_allow_html=True)
-                insight_columns = st.columns(min(3, len(indications)), gap="small")
-                for index, (name, score, coverage) in enumerate(indications):
-                    with insight_columns[index % len(insight_columns)]:
-                        st.markdown(
-                            f"<div class='signal-card'><div class='signal-head'><div class='signal-title'>{esc(name)}</div>"
-                            f"<div class='signal-score'>{score:.0f}<small>/100</small></div></div>"
-                            f"<div class='signal-track'><div class='signal-fill' style='width:{max(0,min(100,score)):.0f}%'></div></div>"
-                            f"<div class='signal-note'>Supported by {esc(coverage)} indicators</div></div>", unsafe_allow_html=True
-                        )
             render_role_fit(canonical_id, profile_key)
             versatility = position_versatility_figure(canonical_id)
             if versatility:
@@ -2219,25 +2261,13 @@ elif page == "Player Profile":
                     st.caption("Each point estimates fit against the target position’s academy peer group. Point size reflects available supporting evidence.")
         with tabs[1]:
             with st.container(border=True):
-                st.markdown("<div class='profile-section-head'>Technical profile</div>", unsafe_allow_html=True)
+                st.markdown("<div class='profile-section-head'>Position DNA</div>", unsafe_allow_html=True)
                 radar = radar_figure(canonical_id, profile_key)
                 if radar:
                     st.plotly_chart(radar, width="stretch", config={"displayModeBar": False}, key=f"detail_radar_{canonical_id}")
-                    st.caption("The scale is normalized to 0–100. This is a profile of supported tendencies, not an overall grade.")
+                    st.caption("This is the player’s shape across the actions required by the recorded position. The centre line represents the academy peer midpoint.")
                 else:
                     st.markdown("<div class='profile-empty'>No supported indicators are available for this player yet.</div>", unsafe_allow_html=True)
-            indications = style_indications(canonical_id, profile_key)
-            if indications:
-                st.markdown("<div class='profile-section-head' style='margin-top:1rem'>Playing-style signals</div>", unsafe_allow_html=True)
-                insight_columns = st.columns(min(3, len(indications)), gap="small")
-                for index, (name, score, coverage) in enumerate(indications):
-                    with insight_columns[index % len(insight_columns)]:
-                        st.markdown(
-                            f"<div class='signal-card'><div class='signal-head'><div class='signal-title'>{esc(name)}</div>"
-                            f"<div class='signal-score'>{score:.0f}<small>/100</small></div></div>"
-                            f"<div class='signal-track'><div class='signal-fill' style='width:{max(0,min(100,score)):.0f}%'></div></div>"
-                            f"<div class='signal-note'>Supported by {esc(coverage)} indicators</div></div>", unsafe_allow_html=True
-                        )
             render_role_fit(canonical_id, profile_key, detailed=True)
             versatility = position_versatility_figure(canonical_id)
             if versatility:
@@ -2249,7 +2279,7 @@ elif page == "Player Profile":
             performances = load_history(canonical_id, "performances")
             st.markdown("<div class='profile-section-head'>Club journey</div>", unsafe_allow_html=True)
             if transfers.empty:
-                st.markdown("<div class='profile-empty'>No recorded club-movement events are available.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='profile-empty'>No club-movement events have been imported for this player yet.</div>", unsafe_allow_html=True)
             else:
                 for _, move in transfers.iterrows():
                     date = safe(move.transfer_date, safe(move.season, "Date not listed"))
@@ -2260,7 +2290,9 @@ elif page == "Player Profile":
                         st.caption(f"{date} · {safe(move.fee, 'Fee not listed')} · {safe(move.age_at_transfer, 'Age not listed')}")
             st.markdown("<div class='profile-section-head' style='margin-top:1.2rem'>Season record</div>", unsafe_allow_html=True)
             if performances.empty:
-                st.markdown("<div class='profile-empty'>No season-by-season appearance record is available.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='profile-empty'>No season record has been imported for this player yet. This is an import gap, not an indication of no appearances.</div>", unsafe_allow_html=True)
+                if tm_profile:
+                    st.link_button("Open complete season record", tm_profile, icon="↗")
             else:
                 performances["minutes"] = pd.to_numeric(performances.minutes, errors="coerce").fillna(0)
                 season_data = performances.groupby("season", as_index=False).agg(minutes=("minutes", "sum"), appearances=("appearances", "sum"), goals=("goals", "sum"), assists=("assists", "sum"))
