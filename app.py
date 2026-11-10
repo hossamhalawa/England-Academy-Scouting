@@ -1362,56 +1362,19 @@ def radar_figure(canonical_id: str, profile_key: str | None = None) -> go.Figure
     return figure
 
 
-def role_fit_scatter_figure(canonical_id: str) -> go.Figure | None:
-    """Actual role outcomes: calculated fit on x, available requirement evidence on y."""
+def role_fit_matrix_figure(canonical_id: str) -> go.Figure | None:
     fits = role_fit_estimates(canonical_id)
     if fits.empty:
         return None
-    # Keep the board readable while retaining all roles in the hover layer.
-    fits = fits.sort_values("score", ascending=False).groupby(["phase", "role"], as_index=False).first()
-    fig = go.Figure()
-    palette = {"In Possession": BURGUNDY, "Out Of Possession": "#5F8D87"}
-    for phase, rows in fits.groupby("phase", sort=False):
-        labels = [role if index < 4 else "" for index, role in enumerate(rows.sort_values("score", ascending=False).role.tolist())]
-        fig.add_trace(go.Scatter(
-            x=rows.score, y=rows.coverage * 100, mode="markers+text", text=labels, textposition="top center",
-            textfont=dict(size=10, color=NAVY), name=phase,
-            marker=dict(size=8 + (rows.known / rows.required * 8), color=palette.get(phase, NAVY), line=dict(color="white", width=1.5)),
-            customdata=list(zip(rows.role, rows.known.astype(int), rows.required.astype(int))),
-            hovertemplate="<b>%{customdata[0]}</b><br>Calculated role fit: %{x:.0f}<br>Evidence: %{customdata[1]} of %{customdata[2]} requirements<extra></extra>",
-        ))
-    fig.update_layout(height=300, margin=dict(l=14,r=12,t=12,b=40), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(range=[0,100], title="Calculated role fit", gridcolor="#E8E1D7", zeroline=False),
-        yaxis=dict(range=[0,105], title="Evidence coverage", ticksuffix="%", gridcolor="#E8E1D7", zeroline=False),
-        legend=dict(orientation="h", y=1.13, x=0, font=dict(size=10)), hovermode="closest")
+    best = fits.sort_values("score", ascending=False).groupby("role", as_index=False).first().head(6)
+    if best.empty:
+        return None
+    fig = go.Figure(go.Heatmap(z=[best.score.tolist()], x=best.role.tolist(), y=["Role match"],
+        colorscale=[[0, "#E8E1D7"], [.5, "#9FC8C1"], [1, BURGUNDY]], zmin=0, zmax=100,
+        showscale=False,
+        hovertemplate="%{x}<br>Peer-based role fit: %{z:.0f}<extra></extra>"))
+    fig.update_layout(height=155, margin=dict(l=5,r=5,t=15,b=35), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", xaxis=dict(tickangle=-22), yaxis=dict(showticklabels=False))
     return fig
-
-
-def role_requirement_figure(canonical_id: str) -> tuple[go.Figure | None, str]:
-    """Drill-down for the best-supported calculated role; dots are actual attribute percentiles."""
-    fits = role_fit_estimates(canonical_id)
-    if fits.empty:
-        return None, ""
-    role = fits.sort_values("score", ascending=False).iloc[0]
-    percentiles = player_percentile_attributes(canonical_id)
-    required = [name.strip() for name in str(role.key_attributes).split(",") if name.strip()]
-    observed = [(name, percentiles[name]) for name in required if name in percentiles]
-    if len(observed) < 2:
-        return None, ""
-    names, values = zip(*observed)
-    critical = [index < 4 for index in range(len(names))]
-    fig = go.Figure()
-    fig.add_vline(x=50, line=dict(color="rgba(104,119,131,.55)", dash="dot", width=1.2), annotation_text="Peer midpoint", annotation_position="top", annotation_font=dict(size=10,color=MUTED))
-    fig.add_trace(go.Scatter(x=values, y=list(names), mode="markers", marker=dict(size=12, color=[BURGUNDY if value else "#5F8D87" for value in critical], line=dict(color="white", width=1.5)),
-        text=[f"<b>{esc(name)}</b><br>Player percentile: {value:.0f}<br>{'Core requirement' if is_core else 'Supporting requirement'}" for name, value, is_core in zip(names, values, critical)], hovertemplate="%{text}<extra></extra>", showlegend=False))
-    fig.update_layout(height=max(260, 38 * len(names) + 85), margin=dict(l=12,r=12,t=35,b=24), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(range=[0,100], title="Peer percentile", gridcolor="#E8E1D7", zeroline=False), yaxis=dict(autorange="reversed", tickfont=dict(size=11,color=NAVY), gridcolor="rgba(0,0,0,0)"))
-    return fig, f"{role.role} · {role.phase}"
-
-
-def role_fit_matrix_figure(canonical_id: str) -> go.Figure | None:
-    # Kept as a compatibility name for existing profile calls; it is now a real scatter.
-    return role_fit_scatter_figure(canonical_id)
 
 
 @st.cache_data(show_spinner=False)
@@ -1493,7 +1456,30 @@ def profile_fingerprint_figure(canonical_id: str) -> go.Figure | None:
 
 
 def role_landscape_figure(canonical_id: str) -> go.Figure | None:
-    return role_fit_scatter_figure(canonical_id)
+    lane, metrics, _ = position_metrics(canonical_id)
+    fits = role_fit_estimates(canonical_id)
+    if fits.empty or not metrics:
+        return None
+    percentiles = player_percentile_attributes(canonical_id)
+    template = POSITION_DNA.get(lane, {})
+    roles = fits.sort_values("score", ascending=False).head(8).copy()
+    columns = list(metrics)
+    z: list[list[float | None]] = []
+    row_labels: list[str] = []
+    for _, role in roles.iterrows():
+        required = {name.strip() for name in str(role.key_attributes).split(",") if name.strip()}
+        row: list[float | None] = []
+        for metric_name in columns:
+            values = [percentiles[name] for name in template[metric_name] if name in required and name in percentiles]
+            row.append(sum(values) / len(values) if values else None)
+        z.append(row)
+        row_labels.append(f"{role.role} · {role.phase.replace(' ', ' ').lower()}")
+    fig = go.Figure(go.Heatmap(z=z, x=columns, y=row_labels, zmin=0, zmax=100,
+        colorscale=[[0, "#EEF0EC"], [.45, "#B6D1CA"], [.72, "#6F9993"], [1, BURGUNDY]],
+        showscale=False, hovertemplate="<b>%{y}</b><br>%{x}: %{z:.0f} peer percentile<extra></extra>", xgap=2, ygap=2))
+    fig.update_layout(height=300, margin=dict(l=8,r=8,t=12,b=74), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(tickangle=-24, tickfont=dict(size=10,color=NAVY)), yaxis=dict(autorange="reversed", tickfont=dict(size=10,color=NAVY)))
+    return fig
 
 
 POSITION_CONTEXT_AXES = {
@@ -1574,12 +1560,6 @@ def render_player_canvas(canonical_id: str) -> None:
             chart.update_layout(height=650)
             st.plotly_chart(chart, width="stretch", config={"displayModeBar": True}, key=f"canvas_focus_plot_{focus}_{canonical_id}")
             st.caption(note)
-            if focus == "Role pathways":
-                requirements, role_label = role_requirement_figure(canonical_id)
-                if requirements:
-                    st.markdown(f"<div class='profile-section-head' style='margin-top:1rem'>Requirement evidence · {esc(role_label)}</div>", unsafe_allow_html=True)
-                    st.plotly_chart(requirements, width="stretch", config={"displayModeBar": True}, key=f"canvas_role_requirements_{canonical_id}")
-                    st.caption("Each dot is a recorded player attribute expressed against the positional peer group. Bronze marks a core requirement; green marks a supporting one.")
         else:
             st.markdown("<div class='profile-empty'>There is not enough recorded evidence to render this view yet.</div>", unsafe_allow_html=True)
         return
@@ -1700,7 +1680,7 @@ def render_role_fit(canonical_id: str, profile_key: str | None = None, detailed:
         if not row.empty:
             best = row.iloc[0]
             st.caption(f"{label}: {best.role} · based on {int(best.known)}/{int(best.required)} available requirements")
-    st.caption("Each dot is a calculated role outcome: horizontal position is fit, vertical position is evidence coverage. Missing evidence is excluded, never treated as a low score.")
+    st.caption("Role fit uses peer percentiles within the player’s positional lane. Missing evidence is excluded, never treated as a low score.")
 
 
 def attr_rows_html(frame: pd.DataFrame) -> str:
