@@ -1775,8 +1775,10 @@ def sync_nav() -> None:
 
 
 def set_nav(page: str, club: str | None = None, player: str | None = None) -> None:
+    """Switch page inside the same Streamlit rerun without a deferred second pass."""
     st.session_state.nav = page
-    st.session_state.nav_pending = page
+    st.session_state.nav_input = page
+    st.session_state.pop("nav_pending", None)
     if club is not None:
         st.session_state.selected_club = club
     if player is not None:
@@ -1800,6 +1802,7 @@ if "nav" not in st.session_state:
 if "nav_input" not in st.session_state:
     st.session_state.nav_input = st.session_state.nav
 if "nav_pending" in st.session_state:
+    # Compatibility for sessions created by the older deferred-navigation flow.
     st.session_state.nav = st.session_state.nav_pending
     st.session_state.nav_input = st.session_state.nav_pending
     del st.session_state.nav_pending
