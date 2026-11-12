@@ -525,7 +525,14 @@ def photo_html(row: pd.Series, style_class: str = "") -> str:
     def usable_photo(value: object) -> str:
         candidate = safe(value, "")
         normalized = candidate.casefold()
-        return "" if any(marker in normalized for marker in ("default.jpg", "fallback.png", "placeholder", "/wappen/", "/club/")) else candidate
+        # These are site/social-preview graphics, not player portraits.  Keeping
+        # them out of the UI is preferable to presenting a stadium or publisher
+        # logo as a player's image.
+        rejected_markers = (
+            "default.jpg", "fallback.png", "placeholder", "/wappen/", "/club/",
+            "livesport.com/res/_scoreboard", "scoreboard.png", "og/scoreboard",
+        )
+        return "" if any(marker in normalized for marker in rejected_markers) else candidate
 
     local_path = safe(row.get("cached_photo_path"), "")
     url = ""
