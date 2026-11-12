@@ -2705,8 +2705,11 @@ elif page == "Compare Players":
                  safe(row.nationality, ""), f"Age {format_age(row.age)}" if format_age(row.age) not in ("—", "Unknown") else ""]
         facts = " · ".join(esc(fact) for fact in facts if fact)
         fit = item["fit"]
-        fit_text = f"{float(fit.score):.0f} / 100" if fit is not None else "Not enough evidence"
-        coverage = f"{item['present']} of {item['required']} role indicators available" if item["required"] else "Role evidence unavailable"
+        # Partial profiles are still useful in comparison.  Do not turn a missing
+        # role-fit calculation into a failure message: the radar below simply
+        # renders the dimensions that this player actually has.
+        fit_text = f"{float(fit.score):.0f} / 100" if fit is not None else "Profile available"
+        coverage = f"{item['present']} role indicators recorded" if item["required"] else "Available profile indicators"
         return (f"<div class='comparison-person' style='border-top:3px solid {color}'>"
                 f"{photo_html(row, 'small')}<div class='comparison-name'>{esc(row.player_name)}</div>"
                 f"<div class='comparison-sub'>{facts}</div><div class='comparison-section'>{esc(role_name)}</div>"
@@ -2750,7 +2753,7 @@ elif page == "Compare Players":
             st.plotly_chart(fig, width="stretch", config={"displayModeBar": False}, key="comparison_role_radar")
             st.caption("The chart uses available supporting indicators on a 0–100 scale. Gaps are not zero; incomplete profiles appear as points.")
 
-    st.markdown("<div class='profile-section-head' style='margin-top:1rem'>Evidence coverage</div>", unsafe_allow_html=True)
+    st.markdown("<div class='profile-section-head' style='margin-top:1rem'>Profile coverage</div>", unsafe_allow_html=True)
     coverage_cols = st.columns(len(profile_data))
     for col, item in zip(coverage_cols, profile_data):
         with col:
@@ -2758,10 +2761,10 @@ elif page == "Compare Players":
                 fraction = item["present"] / item["required"]
                 st.markdown(f"**{esc(item['row'].player_name)}** · {item['present']} / {item['required']}")
                 st.progress(min(1.0, fraction))
-                st.caption("Role indicators available")
+                st.caption("Recorded role indicators")
             else:
                 st.markdown(f"**{esc(item['row'].player_name)}**")
-                st.caption("Role coverage unavailable")
+                st.caption("Available profile indicators")
 
     st.markdown("<div class='profile-section-head' style='margin-top:1rem'>Key comparison</div>", unsafe_allow_html=True)
     if mixed_keepers:
